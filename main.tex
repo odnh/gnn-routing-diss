@@ -1,0 +1,70 @@
+\documentclass[a4paper,12pt,twoside,openright]{report}
+
+
+\def\authorname{Oliver D.\ N.\ Hope\xspace}
+\def\authorcollege{Jesus College\xspace}
+\def\authoremail{oliver.hope@cst.cam.ac.uk}
+\def\dissertationtitle{TBD}
+\def\wordcount{Hopefully around 12000}
+
+
+%\usepackage[dvips]{epsfig,graphics} 
+\usepackage{epsfig,graphicx,verbatim,parskip,tabularx,setspace,xspace}
+\usepackage{fontspec}
+\usepackage[backend=biber]{biblatex}
+\defaultfontfeatures{Ligatures=TeX}
+\setmainfont{Linux Libertine O}
+
+\addbibresource{refs.bib}
+
+%% START OF DOCUMENT
+\begin{document}
+
+
+%% FRONTMATTER (TITLE PAGE, DECLARATION, ABSTRACT, ETC) 
+\pagestyle{empty}
+\singlespacing
+\input{titlepage}
+\onehalfspacing
+\input{declaration}
+\singlespacing
+\input{abstract}
+
+\pagenumbering{roman}
+\setcounter{page}{0}
+\pagestyle{plain}
+\tableofcontents
+\listoffigures
+\listoftables
+
+\onehalfspacing
+
+%% START OF MAIN TEXT 
+
+%\chapter{Introduction}
+\chapter{Title}
+\pagenumbering{arabic} 
+\setcounter{page}{1} 
+
+%\chapter{Background} 
+\chapter{Title} 
+
+%\chapter{Related Work} 
+\chapter{Title}
+
+%\chapter{Design and Implementation}
+\chapter{Title}
+
+%\chapter{Evaluation} 
+\chapter{Title}
+\
+%\chapter{Summary and Conclusions} 
+\chapter{Title}
+
+
+\appendix
+\singlespacing
+
+\printbibliography
+
+\end{document}

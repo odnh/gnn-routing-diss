@@ -1,0 +1,22 @@
+\chapter{Problem formulation}
+\todo[inline]{think of renaming this chapter to be less generic, more focussed on my project}
+
+\section{Introduction}
+- give a short intro to what this chapter does and mention the gym env and that all the contents are part of it
+
+\section{The multicommodity flow problem}
+ - introduce the problem (depending on how much deal in background) and mention how its solved here
+ - i.e. take the optimal for reward... (LP solver)
+
+\section{Data-driven routing}
+- give detailed description of how we are modelling this here. (i.e. using node splitting ratios)
+- talk about the observation space and action space including the interplay between them
+- talk about the issue of "bad routes" and how this could be solved? (i.e. pruning, early stop with bad reward etc...) (just if see a loop then immediate end with bad reward)
+
+\section{Action space size reduction techniques}
+- i.e. this section is softmin routing (and the mention that other techniques may also be viable). Need to make it obvious this is not my idea but idea of previous paper. However also make obvious how bad original description was and how much I had to flesh it out...
+- (maybe try sofmin with huge gamma, see if it helps...)
+
+\section{Traffic demand sequences}
+- talk about the different types used (i.e. cyclic and gravity) and how they are a good approximation of reality (+ cite this fact)
+- talk about how will also evaluate using real world data (Abilene + Totem) but don't say too much if this ends up going badly...

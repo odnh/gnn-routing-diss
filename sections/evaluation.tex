@@ -1,0 +1,42 @@
+\chapter{Evaluation}
+
+\subsection{Aims}
+
+- in which I discuss the goals of the evaluation (what does it seek to show?). This should roughly map on to contributions given in earlier chapters
+- talk about using progressive randomisation
+
+\subsection{Experimental setup}
+
+- talk about the training setup, hyperparameter tuning, the aget used (PPO2) and CITE
+- talk about how dms are generated and why this is ok
+
+\subsection{Baselines}
+
+- mlp \& lstm
+- softmin and random
+- maybe also Raeke (if I get working)
+
+\subsection{Learning static routing}
+
+- talk about single sequence, single cycle (all should work)
+
+\subsection{Learning cyclic routing}
+
+- talk about adding cycles and training on one / multiple seqs. Still only test from training set though
+
+\subsection{Generalising to unseen sequences}
+
+- talk about changing just the dms, changing the cycle length, even changing dm type
+
+\subsection{Generalising to unseen graphs}
+
+- talk about why LSTM and MLP just can't do this
+- talk about why is important (e.g. drop node, drop link, add node, add link) (amybe do this earlier in diss)
+- compare against MLP where modify the routing using some heuristic maybe???
+- do drop/add node/link
+- do generate graph from same distribution
+- do out of distribution (this will probably really fail...
+
+\subsection{Real world}
+
+- test on TOTEM/Abilene with cross-fold validation

@@ -1,10 +1,10 @@
 \documentclass[a4paper,12pt,twoside,openright]{report}
 
-
+% information defines
 \def\authorname{Oliver D.\ N.\ Hope\xspace}
 \def\authorcollege{Jesus College\xspace}
 \def\authoremail{oliver.hope@cst.cam.ac.uk}
-\def\dissertationtitle{TBD}
+\def\dissertationtitle{Reinforcement learning techniques for generalisable data-driven routing}
 \def\wordcount{Hopefully around 12000}
 
 
@@ -14,21 +14,41 @@
 \usepackage[backend=biber]{biblatex}
 \defaultfontfeatures{Ligatures=TeX}
 \setmainfont{Linux Libertine O}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{algorithm}
+\usepackage{algcompatible}
+\usepackage{algpseudocode}
+
+% remove this when done
+\usepackage{todonotes}
+
+% fix comment alignment in algorithm blocks
+\renewcommand{\Comment}[2][.525\linewidth]{%
+  \leavevmode\hfill\makebox[#1][l]{$\triangleright$~#2}}
+  
+% perform detailed wordcount, TODO: remove when done
+\usepackage{shellesc}
+\newcommand{\detailtexcount}[1]{%
+  \ShellEscape{texcount -merge -sum -q #1.tex output.bbl > #1.wcdetail }%
+  \verbatiminput{#1.wcdetail}%
+}
 
 \addbibresource{refs.bib}
 
 %% START OF DOCUMENT
 \begin{document}
 
+\detailtexcount{main}
 
 %% FRONTMATTER (TITLE PAGE, DECLARATION, ABSTRACT, ETC) 
 \pagestyle{empty}
 \singlespacing
-\input{titlepage}
+\input{sections/titlepage}
 \onehalfspacing
-\input{declaration}
+\input{sections/declaration}
 \singlespacing
-\input{abstract}
+\input{sections/abstract}
 
 \pagenumbering{roman}
 \setcounter{page}{0}
@@ -40,27 +60,17 @@
 \onehalfspacing
 
 %% START OF MAIN TEXT 
+\input{sections/introduction}
 
-%\chapter{Introduction}
-\chapter{Title}
-\pagenumbering{arabic} 
-\setcounter{page}{1} 
+\input{sections/background}
 
-%\chapter{Background} 
-\chapter{Title} 
+\input{sections/problem}
 
-%\chapter{Related Work} 
-\chapter{Title}
+\input{sections/learning}
 
-%\chapter{Design and Implementation}
-\chapter{Title}
+\input{sections/evaluation}
 
-%\chapter{Evaluation} 
-\chapter{Title}
-\
-%\chapter{Summary and Conclusions} 
-\chapter{Title}
-
+\input{sections/conclusions}
 
 \appendix
 \singlespacing

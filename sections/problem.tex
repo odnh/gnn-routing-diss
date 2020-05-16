@@ -3,20 +3,50 @@
 \todo[inline]{think of renaming this chapter to be less generic, more focussed on my project}
 
 \section{Introduction}
-- give a short intro to what this chapter does and mention the gym env and that all the contents are part of it
+\todo{into what this chapter talks about and give a bit of a summary. Also include that will mention RL stuff but the actula approach to learning and architecture and stuff is in the next chapter}
+In this chapter we describe the formal specification of the problem to be solved whilst also introducing some tactics that have been used to make this more feasible.
+
+
+\section{Data-driven routing}
+
+In the introduction it was described that this project seeks to perform more optimal routing in the presence of knowledge of traffic demands than oblivious techniques. To do this we must first define the routing model it acts on. We take a similar model to that of Valadarsky\cite{valadarsky2017learning}. In this context we consider a static network upon which we can specify a routing, and which also has a set of traffic demands associated with it in the form of traffic matrices. Formally we have:
+\begin{itemize}
+  \item The \emph{network} which is modelled as a directed graph where all the edges have a link capacity: $G=(V,E,c)$ where $V$ is the set of vertices, $E$ is the set of edges and $c : E \rightarrow \mathbb{R}^+$ is a function mapping each edge in the graph to its capacity.
+  \item The \emph{routing} which for each flow (demand and source and destination pair) specifies at each vertex how much of that flow should be sent down each of its edges to each of its neighbours. Therefore, if we define $\Gamma(v)$ to be the set of all neighbours of vertex $v$ then we can define a routing to be $\mathcal{R}_{v,(s,t)} : \Gamma(v) \rightarrow [0,1]$ with $\mathcal{R}_{v,(s,t)}(u)$ as the proportion of the flow passing from $s$ to $t$ through vertex $v$ that is forwarded to vertex $u$. Importantly, any routing specified must obey the two constraints:
+    \begin{enumerate}
+      \item No traffic is lost between source and destination:\\
+        $\sum_{u \in \Gamma(v)}{\mathcal{R}_{v,(s,t)}(u)} = 1 \qquad \forall s, t \in V \wedge v \neq t$
+      \item All traffic for a destination is absorbed at that destination:\\
+        $\sum_{u \in \Gamma(v)}{\mathcal{R}_{t,(s,t)}(u)} = 0 \qquad \forall s, t \in V$
+    \end{enumerate}
+  \item The \emph{demands} which can be represented as an $D \in \mathbb{R}^{|V|\times|V|}$ matrix called a demand matrix (DM) where each element $D_{st}$ is the traffic demand between the source $s$ and destination $t$.
+\end{itemize}
+
+With these definitions we can now fully describe the movement of traffic over a network. The rest of this work will use just this system and no more or less when talking about networks, routings or demands. In examples we will assume that the network itself is fixed and that traffic is described by sequences of DMs, each representing a discrete time step, which are also fixed. The only thing we are allowed to modify is the routing strategy. Given the above structure, we can define some notions of goodness of a particular routing. In particular, as our aim is to reduce congestion we will make our utility function that of minimising link over-utilisation.
+
+This can be defined to be minimising $U_{max}$ in:\\
+$\forall (u,v) \in E: U_{max} > U(u,v)$\\
+where $U(u,v)$ is the utilisation of the link $(u,v)$.
+
 
 \section{The multicommodity flow problem}
  - introduce the problem (depending on how much deal in background) and mention how its solved here
  - i.e. take the optimal for reward... (LP solver)
+ - maybe merge into prev section? Actually, merge and split prev section into subsections?
 
-\section{Data-driven routing}
-- give detailed description of how we are modelling this here. (i.e. using node splitting ratios)
-- talk about the observation space and action space including the interplay between them
-- talk about the issue of "bad routes" and how this could be solved? (i.e. pruning, early stop with bad reward etc...) (just if see a loop then immediate end with bad reward)
 
-\section{Action space size reduction techniques}
-- i.e. this section is softmin routing (and the mention that other techniques may also be viable). Need to make it obvious this is not my idea but idea of previous paper. However also make obvious how bad original description was and how much I had to flesh it out...
-- (maybe try sofmin with huge gamma, see if it helps...)
+ \section{The environment}
+ - talk briefly about RL gym env and action space and obs space
+ - talk about reduction from full -> dest-based -> only per edge \& why
+
+
+\section{Softmin routing}
+- say is from prev paper
+- talk about exisiting issues with examples and diagrams
+- i.e. bad routes (cycles)
+- talk about the reward solution
+- talk about the (better) pruning solution (w/ diagram)
+
 
 \section{Traffic demand sequences}
 - talk about the different types used (i.e. cyclic and gravity) and how they are a good approximation of reality (+ cite this fact)

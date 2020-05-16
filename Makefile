@@ -1,5 +1,4 @@
-all: main.pdf
-main.pdf:
+all:
 	lualatex --shell-escape main
 	biber main
 	lualatex --shell-escape main

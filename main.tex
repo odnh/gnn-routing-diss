@@ -4,21 +4,23 @@
 \def\authorname{Oliver D.\ N.\ Hope\xspace}
 \def\authorcollege{Jesus College\xspace}
 \def\authoremail{oliver.hope@cst.cam.ac.uk}
-\def\dissertationtitle{Reinforcement learning techniques for generalisable data-driven routing}
+\def\dissertationtitle{Generalisable data-driven routing using Deep RL with GNNs}
 \def\wordcount{Hopefully around 12000}
 
 
-%\usepackage[dvips]{epsfig,graphics} 
 \usepackage{epsfig,graphicx,verbatim,parskip,tabularx,setspace,xspace}
-\usepackage{fontspec}
 \usepackage[backend=biber]{biblatex}
+\usepackage{unicode-math}  % loads fontspec
 \defaultfontfeatures{Ligatures=TeX}
-\setmainfont{Linux Libertine O}
-\usepackage{amsmath}
+\setmainfont[Numbers={Lining,Proportional},RawFeature={+ss06}]{EB Garamond}
+\setmonofont{inconsolata}
+\setsansfont{Linux Biolinum O}
+\setmathfont{Garamond-Math}
 \usepackage{bm}
 \usepackage{algorithm}
 \usepackage{algcompatible}
 \usepackage{algpseudocode}
+\usepackage[hidelinks=true]{hyperref}
 
 % remove this when done
 \usepackage{todonotes}

@@ -19,6 +19,7 @@ In the previous section intradomain routing was introduced along with the protoc
 Data-driven routing seeks to make routing decisions that take into account the impact of traffic on the network. This is often to provide improved performance by reducing link congestion which is the utility which will be focussed on here.
 
 \subsection{Multicommodity flow}
+\label{section:multicommodity}
 
 The problem of data-driven routing can in fact be modelled as a multicommodity flow problem. The multicommodity flow problem is simply a network flow problem with multiple demands between different source and sink nodes. It consists of a flow network $G(V,E)$ where each edge $(u,v) \in E$ has a capacity $c(u,v)$. Then we wish to place commodities $K_i = (s_i, t_i, d_i)$ on the network where $s_i$ is the source, $t_i$ is the sink and $d_i$ is the demand (the amount of data to pass between source and sink). Finally the following constraints must be satisfied:
 

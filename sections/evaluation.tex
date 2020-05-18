@@ -1,44 +1,33 @@
 \chapter{Evaluation}
 \label{chapter:evaluation}
-
 \todo{write whole chapter. Idea: do the graph linky thing from Q-Jump paper (but only if time and after all else is complete)}
-\subsection{Aims}
 
-- in which I discuss the goals of the evaluation (what does it seek to show?). This should roughly map on to contributions given in earlier chapters
-- talk about using progressive randomisation
+\subsection{Aims}
+\todo{Give (and discuss) goals of what eval seeks to show (should map onto contributions given earlier). Talk about progressive randomisation include the definition table). summarise what experiments will be performed}
 
 \subsection{Experimental setup}
+\todo{training set up. hyperparameter tuning (cite). specifics of agent used (cite). callbacck with reference to DM generation methodology earlier}
 
-- talk about the training setup, hyperparameter tuning, the aget used (PPO2) and CITE
-- talk about how dms are generated and why this is ok
 
 \subsection{Baselines}
+\todo{just a callback to their earlier descrip with reference (mlp \& lstm). also introduce Raeke routing}
 
-- mlp \& lstm
-- softmin and random
-- maybe also Raeke (if I get working)
 
 \subsection{Learning static routing}
+\todo{talk about single sequence, single cycle (all should work)}
 
-- talk about single sequence, single cycle (all should work)
 
 \subsection{Learning cyclic routing}
+\todo{talk about adding cycles and training on one / multiple seqs. Still only test from training set though}
 
-- talk about adding cycles and training on one / multiple seqs. Still only test from training set though
 
 \subsection{Generalising to unseen sequences}
+\todo{talk about changing just the dms, changing the cycle length, even changing dm type}
 
-- talk about changing just the dms, changing the cycle length, even changing dm type
 
 \subsection{Generalising to unseen graphs}
-
-- talk about why LSTM and MLP just can't do this
-- talk about why is important (e.g. drop node, drop link, add node, add link) (amybe do this earlier in diss)
-- compare against MLP where modify the routing using some heuristic maybe???
-- do drop/add node/link
-- do generate graph from same distribution
-- do out of distribution (this will probably really fail...
+\todo{mention again why nnot comparing mlp here. mention why important (drop node/link etc, ref earlier). do drop/add node/link. do gen from same distribution. do out of distribution (will probs fail but is good to show)}
 
 \subsection{Real world}
+\todo{test on TOTEM/Abilene with cross-fold validation}
 
-- test on TOTEM/Abilene with cross-fold validation

@@ -1,33 +1,43 @@
 \chapter{Evaluation}
 \label{chapter:evaluation}
-\todo{write whole chapter. Idea: do the graph linky thing from Q-Jump paper (but only if time and after all else is complete)}
 
 \subsection{Aims}
-\todo{Give (and discuss) goals of what eval seeks to show (should map onto contributions given earlier). Talk about progressive randomisation include the definition table). summarise what experiments will be performed}
+\todo[inline]{Give (and discuss) goals of what evaluation seeks to show (should map onto contributions given earlier). Talk about progressive randomisation and maybe include the definition table). summarise what experiments will be performed}
+So far we have described the problem, approaches to a solution, and how to build different RL approaches that seek to solve it. The aim stated at the beginning of this work was to use RL to perform generalisable data-driven routing. Therefore, this evaluation seeks to assess:
+
+\begin{enumerate}
+\item Are the different policies able to learn to provide a near-optimal routing for a demand?
+\item Are the policies able to generalise this technique to unseen sequences of the same type?
+\item Do they still generalise to unseen sequences from a different distribution?
+\item Are they able to generalise onto different graphs using sequences form the same and different distributions?
+\item Are these routing schemes applicable to real-world scenarios?
+\end{enumerate}
+
+In the course of this chapter these questions will be answered by a sequence of experiments testing all of these stated aims.
 
 \subsection{Experimental setup}
-\todo{training set up. hyperparameter tuning (cite). specifics of agent used (cite). callbacck with reference to DM generation methodology earlier}
+\todo[inline]{training set up. hyperparameter tuning. specifics of algorithm used. callbacck with reference to DM generation methodology earlier}
 
 
 \subsection{Baselines}
-\todo{just a callback to their earlier descrip with reference (mlp \& lstm). also introduce Raeke routing}
+\todo[inline]{just a callback to their earlier description with reference (mlp \& lstm). introduce raeke routing if use. also mention shortest path }
 
 
 \subsection{Learning static routing}
-\todo{talk about single sequence, single cycle (all should work)}
+\todo[inline]{talk about single sequence, single cycle}
 
 
 \subsection{Learning cyclic routing}
-\todo{talk about adding cycles and training on one / multiple seqs. Still only test from training set though}
+\todo[inline]{talk about adding cycles and training on one / multiple sequences. still only test from training set though}
 
 
 \subsection{Generalising to unseen sequences}
-\todo{talk about changing just the dms, changing the cycle length, even changing dm type}
+\todo[inline]{talk about changing just the dms, changing the cycle length, even changing dm type}
 
 
 \subsection{Generalising to unseen graphs}
-\todo{mention again why nnot comparing mlp here. mention why important (drop node/link etc, ref earlier). do drop/add node/link. do gen from same distribution. do out of distribution (will probs fail but is good to show)}
+\todo[inline]{mention again why not comparing mlp here. mention why important (drop node/link etc, ref earlier). do drop/add node/link. do gen from same distribution. do out of distribution (will probably fail but is good to show)}
 
 \subsection{Real world}
-\todo{test on TOTEM/Abilene with cross-fold validation}
+\todo[inline]{test on TOTEM/Abilene dataset}
 

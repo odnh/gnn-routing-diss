@@ -1,11 +1,8 @@
-\chapter{Problem formulation}
+\chapter{Problem specification and approaches}
 \label{chapter:problem}
-\todo[inline]{think of renaming this chapter to be less generic, more focussed on my project}
 
 \section{Introduction}
-\todo{into what this chapter talks about and give a bit of a summary. Also include that will mention RL stuff but the actula approach to learning and architecture and stuff is in the next chapter}
-In this chapter we describe the formal specification of the problem to be solved whilst also introducing some tactics that have been used to make this more feasible.
-
+In this chapter we describe the formal specification of the problem to be solved whilst also introducing some tactics that have been used to make this more feasible. This includes a description of methods to reduce the action space and how this can still result in a fully defined routing. As part of this we introduce an algorithm to remove unwanted cycles from a network graph.
 
 \section{Data-driven routing}
 \label{section:routing}
@@ -49,14 +46,12 @@ To solve this issue we had to find a way to associate the demands with the corre
 One other important addition to make this new structure work was normalising the inputs as otherwise the more vertices in a graph, the higher the totals for each vertex will on average be which is unwanted behaviour.
 
 \subsection{Action space}
-\todo{talk about big action space and the need for reduction as well as introducing the possible ways of reducing its size}
 Following on from the definitions given in section~\ref{section:routing}, we can see that one valid way for the agent to assign a routing would be to provide splitting ratios for each edge under each flow. However, this would require an output of $|V|\times(|V|-1)\times|E|$ separate values. Unfortunately, this size of action space is too big to learn successfully. If we make some approximating assumptions about the routing (which will no longer allow us to achieve the optimal routing but still allow us to get closer than oblivious strategies) then we can reduce this output size.
 
 A first method to reduce the action space size is to ignore the source of any packets, forming a destination-only routing. This reduces the size to $|V|\times|E|$. However, this is still to large so instead we had to create a method of deriving routing strategies from setting weights of edges, creating an action space with only $|E|$ values. This was finally small enough to achieve good results. The next section describes how the routing strategy works.
 
 \section{Softmin routing}
-\todo{say is from prev paper. explain with nice colourful diagram. talk about issues e.g. bad routes again with diagram. talk about pruning solution with diagram (also give an algorithm block for both softmin and pruning bits)}
-The paper ``Learning to route with Deep RL'' also ran into the same issues of action space size and so created a method of deriving a routing strategy from edge weights which they called \emph{softmin routing}. As part of our research we tried to use the same solution specified but found some issues and therefore had to modify it significantly. It is this modified softmin routing that we will present below.
+The paper ``Learning to route with Deep RL''\cite{valadarsky2017learning} also ran into the same issues of action space size and so created a method of deriving a routing strategy from edge weights which they called \emph{softmin routing}. As part of our research we tried to use the same solution specified but found some issues and therefore had to modify it significantly. It is this modified softmin routing that we will present below.
 
 Softmin routing is a way of deriving the splitting ratios on each edge from each vertex, per flow, given weights that have been set on each edge. These values are calculated using algorithm~\ref{algorithm:softmin} which we shall now describe. We calculate the ratios per flow where a flow is a source destination pair, $(s,t)$. For each vertex we calculate its distance to the destination vertex (along its shortest path using the weighted edges). Then, for each vertex we add the weight of each outgoing edge to the distance of the neighbour at the end of that edge. Using the softmin function given in equation~\ref{equation:softmin} with these summed numbers as input, we are returned splitting ratios to use on these edges for routing under this particular flow. This process is then repeated for all vertices and all flows.
 
@@ -74,8 +69,12 @@ One will notice from this description that the routing derived from such a schem
     \label{fig:bad_route}
 \end{figure}
 
-It can easily be seen that the problem of loops in the routing would not exist in a directed acyclic graph (DAG) as they are defined to have no cycles. Therefore, one way of avoiding routing loops is to convert the graph into a DAG by breaking links. A natural way to think about this is that for a path in a graph to be a cycle, it has to loop backwards on itself at some point. This means that at some point it is taking a step further away from the destination of the flow and back towards the source. As part of calculating the softmin routing we have already found the distance from each vertex to the destination. We can reuse this information to prune edges removing cycles. If, for every edge, we remove it if its head is further from the destination than its tail, then we know that traversing an edge can only ever bring us closer to the destination than we already are. If we remove all edges to more distant nodes then we have now created a DAG and so have no cycles. This method is also shown in algorithm~\ref{slgorithm:softmin}.
 
+\todo{split pruning into separate section and writeup new alg}
+\todo{cite DODAG and RLP and NP-hardness}
+It can easily be seen that the problem of loops in the routing would not exist in a directed acyclic graph (DAG) as they are defined to have no cycles. Therefore, one way of avoiding routing loops is to convert the graph into a DAG by breaking links. A natural way to think about this is that for a path in a graph to be a cycle, it has to loop backwards on itself at some point. This means that at some point it is taking a step further away from the destination of the flow and back towards the source. As part of calculating the softmin routing we have already found the distance from each vertex to the destination. We can reuse this information to prune edges removing cycles. If, for every edge, we remove it if its head is further from the destination than its tail, then we know that traversing an edge can only ever bring us closer to the destination than we already are. If we remove all edges to more distant nodes then we have now created a DAG and so have no cycles. This method is also shown in algorithm~\ref{algorithm:softmin}.
+
+\todo{write out the algorithm for softmin including pruning}
 \begin{algorithm}[t]
 \small
 \begin{algorithmic}
@@ -87,7 +86,13 @@ It can easily be seen that the problem of loops in the routing would not exist i
 \end{algorithm}
 
 \section{Traffic demand sequences}
-\todo{talk about different types of traffic demand sequences used, and define how they are generated formally. Talk about how these DM gen methods approximate reality well and cite that fact. Also mention and cite real-world (Abilene + Totem) maybe}
+We are using RL to approach this problem and the input to the agent is a history of previous demand matrices. The reason for this is that we have made the assumption that the sequence if DMs will have some sort of regularity which we can exploit to predict a routing strategy for the next timestep that is better than the optimal oblivious routing. Therefore, the demand sequences used for training such an agent must be built using some form of regularity. We try two different types of regularity heavily inspired by those selected by Valadrasky\cite{valadarsky2017learning}.
+
+The first kind of regularity is \emph{cyclical}. Here we generate a cycle of demand matrices and the sequence is simply some number of repetitions of this cycle. The second kind is that of a \emph{gravity sequence}\cite{roughan2002experience}. This sequence again starts by defining a cycle which repeats but derives each subsequent DM as an averaging over the history rather than immediately presenting the next DM in the cycle. These scenarios make sense as temporal regularity is often seen in large networks such as those of ISPs\cite{fortz2002optimizing}. We also \emph{sparsify} the DMs (which consists of stochastically removing demands) to add noise to the regularity of the sequence.
+
+\todo{Give mathematical definitions of DM sequences and sparsification}
+
+The DMs in the cycles themselves are generated using a bimodal model\cite{medina2002traffic}. This is a model where demands are assigned randomly to flows, however, there is a small fixed probability that any such demand will be significantly larger than the rest (an elephant flow) which would impact the link utilisation if not handled carefully (thus aided by routing differently for different DMs).
 
 \section{Training graphs}
-\todo{talk about generation/topologyzoo graphs used for training OR maybe this should be in eval section. Whatever the case, no harm in writing here and moving later}
+For training and evaluation purposes it was important that the graphs trained on should be representative of real-world networks. It was thought that maybe graphs from this set could be generated. However, it is difficult to define the set of graphs akin to real-world AS networks. Fortunately, there is an open dataset, ``The Internet Topology Zoo''\cite{6027859} which contains a plethora of real-world networks, enough for both training and evaluation so it was decided to use this instead.

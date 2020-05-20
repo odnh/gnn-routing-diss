@@ -80,6 +80,7 @@ The final piece of the RL puzzle is a way to make the policy act how we want it 
 PPO\cite{schulman2017proximal} is an example of an actor-critic algorithm that achieves good sample efficiency and performance while maintaining a fairly simple implementation (relative to similar algorithms). This is mainly because of how it restricts the maximum size of policy updates. It has had notable successes such as beating world champions in a live game of Dota 2\cite{openai2019dota}.
 
 \subsection{Graph neural networks}
+\label{section:graph_neural_networks}
 
 Graph neural networks (GNNs)\cite{gori2005new,scarselli2008graph} are a form of neural network that has gained considerable 
 traction over the last few years. This is because, in the same way that convolutional neural networks (CNNs) have been used with much success on images as pixels form a grid and are often related to their neighbouring pixel, many other datasets are graph structured with relations to neighbouring nodes being an important part of this structure. GNNs effectively allow us to generalise the CNN model onto graphs. \todo{give some example uses} There are many different types of GNN with different trade-offs as described in countless surveys of the subject\cite{zhou2018graph,Wu_2020}.

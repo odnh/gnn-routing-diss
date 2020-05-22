@@ -21,17 +21,18 @@ In the introduction it was described that this project seeks to perform more opt
 
 With these definitions we can now fully describe the movement of traffic over a network. The rest of this work will use just this system and no more or less when talking about networks, routings or demands. In examples we will assume that the network itself is fixed and that traffic is described by sequences of DMs, each representing a discrete time step, which are also fixed. The only thing we are allowed to modify is the routing strategy. Given the above structure, we can define some notions of goodness of a particular routing. In particular, as our aim is to reduce congestion we will make our utility function that of minimising link over-utilisation.
 
-This can be defined to be minimising $U_{max}$ in:\\
-$\forall (u,v) \in E: U_{max} > U(u,v)$\\
-where $U(u,v)$ is the utilisation of the link $(u,v)$.
+This can be defined to be minimising $U_{max}$ in equation~\ref{equation:utility} where $U(u,v)$ is the utilisation of the link $(u,v)$.
+\begin{equation}
+  \label{equation:utility}
+  \forall (u,v) \in E: U_{max} > U(u,v)
+\end{equation}
 
 
 \section{The environment}
 So that it would be possible to both train and evaluate approaches to the defined problem, it was necessary first to construct an environment to simulate the desired responses that an RL agent could interact with. For easy interoperability with existing libraries, it was decided that this environment should have an OpenAI Gym\cite{brockman2016openai} API. Alongside the internal operations of the environment being correct, its interface to the RL agent is important as it has a large impact on how well the agent can learn. We will now proceed to discuss how the environment calculates rewards, the format of observations it gives to the agent and the format of actions it receives form the agent.
 
 \subsection{Reward calculation}
-As the optimal routing that can be achieved on a given graph varies for different demand matrices, the reward cannot simply be derived from the calculation of the maximum link utilisation. Fortunately, as described in section~\ref{section:multicommodity} we know that an optimal routing does exist and it can be found in polynomial time with linear programming. Therefore, the environment implements a linear solver for the optimal routing to calculate the optimal link utilisation\footnote{The solver is implemented on top of Google OR-Tools\cite{ortools}}. Then, the reward is derived by comparing the routing produced by the RL agent to the calculated optimal routing. This is presented in equation~\ref{equation:reward} where $U_{max}$ is the maximum link utilisation.
-\todo{maybe also put the utility function definition here?}
+As the optimal routing that can be achieved on a given graph varies for different demand matrices, the reward cannot simply be derived from the calculation of the maximum link utilisation. Fortunately, as described in section~\ref{section:multicommodity} we know that an optimal routing does exist and it can be found in polynomial time with linear programming (LP). To do this we solve the problem using the standard LP formulation, minimising the utility function given in equation~\ref{equation:utility}. Therefore, the environment implements a linear solver for the optimal routing to calculate the optimal link utilisation\footnote{The solver is implemented on top of Google OR-Tools\cite{ortools}}. Then, the reward is derived by comparing the routing produced by the RL agent to the calculated optimal routing. This is presented in equation~\ref{equation:reward} where $U_{max}$ is the maximum link utilisation.
 
 \begin{equation}
   \label{equation:reward}
@@ -51,7 +52,7 @@ Following on from the definitions given in section~\ref{section:routing}, we can
 A first method to reduce the action space size is to ignore the source of any packets, forming a destination-only routing. This reduces the size to $|V|\times|E|$. However, this is still to large so instead we had to create a method of deriving routing strategies from setting weights of edges, creating an action space with only $|E|$ values. This was finally small enough to achieve good results. The next section describes how the routing strategy works.
 
 \section{Softmin routing}
-The paper ``Learning to route with Deep RL''\cite{valadarsky2017learning} also ran into the same issues of action space size and so created a method of deriving a routing strategy from edge weights which they called \emph{softmin routing}. As part of our research we tried to use the same solution specified but found some issues and therefore had to modify it significantly. It is this modified softmin routing that we will present below.
+The paper ``Learning to route with Deep RL''\cite{valadarsky2017learning} also ran into the same issues of action space size and so created a method of deriving a routing strategy from edge weights which they called \emph{softmin routing}. As part of our research we attempted to use the same solution specified but found some issues and therefore had to modify it significantly. It is this modified softmin routing that we will present below.
 
 Softmin routing is a way of deriving the splitting ratios on each edge from each vertex, per flow, given weights that have been set on each edge. These values are calculated using algorithm~\ref{algorithm:softmin} which we shall now describe. We calculate the ratios per flow where a flow is a source destination pair, $(s,t)$. For each vertex we calculate its distance to the destination vertex (along its shortest path using the weighted edges). Then, for each vertex we add the weight of each outgoing edge to the distance of the neighbour at the end of that edge. Using the softmin function given in equation~\ref{equation:softmin} with these summed numbers as input, we are returned splitting ratios to use on these edges for routing under this particular flow. This process is then repeated for all vertices and all flows.
 
@@ -60,7 +61,7 @@ Softmin routing is a way of deriving the splitting ratios on each edge from each
   \operatorname{softmin}(\bm{x}) = \left(\frac{e^{-\gamma x_i}}{\sum_{j}{e^{-\gamma x_j}}}\right)_i
 \end{equation}
 
-One will notice from this description that the routing derived from such a scheme does have a potential flaw. Although it does follow all the rules specified for a routing in section~\ref{section:routing} (no traffic is lost and sources send the required demand which is all absorbed by the destination) there is nothing to stop routing loops occurring. An example of such a situation can be seen in figure~\ref{fig:bad_route}. This is undesirable for two reasons. The first is that it wastes capacity as it means traffic traces the same route more than once, and the second is that it increases latency (this is bad but not under measurement here so does not impact our goals). To achieve good results we therefore have to break routing loops.
+One will notice from this description that the routing derived from such a scheme does have a potential flaw. Although it follows all the rules specified for a routing in section~\ref{section:routing} (no traffic is lost and sources send the required demand which is all absorbed by the destination) there is nothing to stop routing loops occurring. An example of such a situation can be seen in figure~\ref{fig:bad_route}. This is undesirable for two reasons. The first is that it wastes capacity as it means traffic traces the same route more than once, and the second is that it increases latency (this is bad but not under measurement here so does not impact our goals). To achieve good results we therefore have to break routing loops.
 
 \begin{figure}
     \centering
@@ -69,30 +70,108 @@ One will notice from this description that the routing derived from such a schem
     \label{fig:bad_route}
 \end{figure}
 
-
-\todo{split pruning into separate section and writeup new alg}
-\todo{cite DODAG and RLP and NP-hardness}
-It can easily be seen that the problem of loops in the routing would not exist in a directed acyclic graph (DAG) as they are defined to have no cycles. Therefore, one way of avoiding routing loops is to convert the graph into a DAG by breaking links. A natural way to think about this is that for a path in a graph to be a cycle, it has to loop backwards on itself at some point. This means that at some point it is taking a step further away from the destination of the flow and back towards the source. As part of calculating the softmin routing we have already found the distance from each vertex to the destination. We can reuse this information to prune edges removing cycles. If, for every edge, we remove it if its head is further from the destination than its tail, then we know that traversing an edge can only ever bring us closer to the destination than we already are. If we remove all edges to more distant nodes then we have now created a DAG and so have no cycles. This method is also shown in algorithm~\ref{algorithm:softmin}.
-
-\todo{write out the algorithm for softmin including pruning}
 \begin{algorithm}[t]
 \small
 \begin{algorithmic}
-\Function{GraphNetwork}{$E$, $V$, $\mathbf{u}$}
+\Function{SoftminRouting}{$G$, $\bm{w}$, $\gamma$}
+  \For{$(s, t) \in flows$}
+    \State $G \gets \operatorname{PruneGraph}(G, (s, t), \bm{w})$
+    \For{$v \in V$}
+      \State $d[i] \gets \operatorname{ShortestPath}(i, t)$
+    \EndFor
+    \For{$v \in V$}
+      \State $out\_edges \gets \operatorname{GetOutEdges}(v)$
+      \State $out\_weights \gets \{w[(u, v)] + d[v] | (u, v) \in out\_edges\}$
+      \State $softmin\_weights \gets \operatorname{Softmin}(out\_weights, \gamma)$
+      \For{$e \in out\_edges$}
+        \State $splitting\_ratios[e] \gets softmin\_weights[e]$
+      \EndFor
+    \EndFor
+  \EndFor
+  \State \textbf{return} $softmin\_weights$
 \EndFunction
 \end{algorithmic}
 \caption{Softmin routing algorithm: the steps taken to convert the learned edge weights given by the RL agent into a fully-defined routing strategy.}
 \label{algorithm:softmin}
 \end{algorithm}
 
+\subsection{Multipath DAG}
+
+The breaking of loops is a problem faced often in routing. In many protocols such as shortest-path based protocols it is not usually an issue as the shortest path by definition cannot contain any cycles but this is not always true as distance vector protocols can run into issues when the network state has not yet converged. It would be easy to remove all loops between source and destination by only keeping the shortest path. However, this does not help with load-balancing and so is not a useful strategy here. What we aim to do is take advantage of multipath with our routings so the longer paths need to remain in the network.
+
+An approach to this problem is looking into ways to convert the graph to a directed acyclic graph (DAG) for each flow where the source and destination become source and sink. Similar work to this is in the use of destination-oriented directed acyclic graphs (DODAG) in the routing protocol for low-powered and lossy networks (RLP)\cite{rfc6550}. There has been research in the space of constructing DODAGs for multipath applications such as work by Iova et al.\cite{iova2015using} however, being for RPL, this focussed on energy minimisation amongst other things.
+Therefore, we had to devise a new algorithm to efficiently retain as many paths from destination to source as possible whilst avoiding loops. One attempt was to use a weighted breadth first search (BFS) from the sink to create a partial ordering on the graph and then only retaining edges that take us closer to the source. However, this still leads to the loss off too many usable links.
+
+The final strategy we devised is shown in algorithm~\ref{algorithm:pruning}. The input to the algorithm is the graph with edges weighted by the agent. We begin by running Dijkstra's algorithm from the source, recording for each node it's parent (in the case of the sink, multiple parents) and any locations where the frontier hits an already explored vertex, called \emph{frontier meets}. Then we trace back from the sink to source, following parent links, and marking any vertex we pass through as \emph{on path}. At this point we have only recorded any shortest paths. Therefore, for every \emph{frontier meet} we find the distance to sink of the first ancestor from each side of the edge to the sink. We then update all the parent information and \emph{on path} information for these vertices so that it becomes a valid path from the more distant ancestor to the closer ancestor. Finally, we remove all edges between nodes that are not \emph{on path} and all edges that are \emph{on path} but where the head of the edge is at the parent.
+
+\begin{algorithm}[t]
+\small
+\begin{algorithmic}
+\Function{PruneGraph}{$(V, E), (s,t), \bm{w}$}
+  \State $queue \gets [(0, s, [])]$
+  \While{$|queue| \not= 0$}
+    \State $(d, v, \bm{p}) \gets \operatorname{pop}(queue)$
+    \State $parents[v] \gets \bm{p}$
+    \For $u \in \operatorname{neighbours}(G, v) - \bm{p}$
+      \If{$u = t$}
+        \State $\operatorname{append}(parents[t], v)$
+        \ElsIf{$u \in explored$}
+        \State $\operatorname{append}(frontier\_meets, (v, u))$
+      \Else
+        \State $\operatorname{push}(queue, (d + G[u][v], u, [v]))$
+      \EndIf
+    \EndFor
+    \State $\operatorname{append}(explored, v)$
+  \EndWhile
+
+  \State $queue \gets [t]$
+  \While{$|queue| \not= 0$}
+    \State $v \gets \operatorname{pop}(queue)$
+    \State $\operatorname{append}(on\_path, v)$
+    \For{$p \in parents[v]$}
+      \State $d[p] \gets d[v] + G[p][v]$
+    \EndFor
+  \EndWhile
+
+  \For{$(u,v) \in frontier\_meets$}
+    \State $a \gets \operatorname{ancestor}(E, on\_path, u)$
+    \State $b \gets \operatorname{ancestor}(E, on\_path, v)$
+    \If{$d[a] = d[b]$}
+      \State \textbf{continue}
+    \EndIf
+    \State $\operatorname{ConnectPath}(a, u, v, b)$
+  \EndFor
+
+  \For{$(u,v) \in E$}
+  \If $u \notin on\_path \wedge v \notin on\_path \wedge u \notin parents[v]$
+  \State $E \gets E - \{(u, v)\}$
+    \EndIf
+  \EndFor
+  \State \textbf{return} $(V, E)$
+\EndFunction
+\end{algorithmic}
+\caption{DAG conversion algorithm retaining high path count from source to sink}
+\label{algorithm:pruning}
+\end{algorithm}
+
 \section{Traffic demand sequences}
-We are using RL to approach this problem and the input to the agent is a history of previous demand matrices. The reason for this is that we have made the assumption that the sequence if DMs will have some sort of regularity which we can exploit to predict a routing strategy for the next timestep that is better than the optimal oblivious routing. Therefore, the demand sequences used for training such an agent must be built using some form of regularity. We try two different types of regularity heavily inspired by those selected by Valadrasky\cite{valadarsky2017learning}.
+We are using RL to approach this problem and the input to the agent is a history of previous demand matrices. The reason for this is that we have made the assumption that the sequence if DMs will have some sort of regularity which we can exploit to predict a routing strategy for the next timestep that is better than the optimal oblivious routing. Therefore, the demand sequences used for training such an agent must be built using some form of regularity. We try two different types of regularity heavily inspired by those selected by Valadarsky\cite{valadarsky2017learning}.
 
 The first kind of regularity is \emph{cyclical}. Here we generate a cycle of demand matrices and the sequence is simply some number of repetitions of this cycle. The second kind is that of a \emph{gravity sequence}\cite{roughan2002experience}. This sequence again starts by defining a cycle which repeats but derives each subsequent DM as an averaging over the history rather than immediately presenting the next DM in the cycle. These scenarios make sense as temporal regularity is often seen in large networks such as those of ISPs\cite{fortz2002optimizing}. We also \emph{sparsify} the DMs (which consists of stochastically removing demands) to add noise to the regularity of the sequence.
 
-\todo{Give mathematical definitions of DM sequences and sparsification}
-
 The DMs in the cycles themselves are generated using a bimodal model\cite{medina2002traffic}. This is a model where demands are assigned randomly to flows, however, there is a small fixed probability that any such demand will be significantly larger than the rest (an elephant flow) which would impact the link utilisation if not handled carefully (thus aided by routing differently for different DMs).
+
+The mathematical definitions for the DMs are as follows:
+\begin{itemize}
+  \item Bimodal DM:\\
+    $D_{ij} = p$ if $s > 0.8$ else $q$ where $p \sim \mathcal{N}(400, 100), q \sim \mathcal{N}(800, 100), s \sim \mathcal{U}(0,1)$.
+  \item Cyclical sequence:\\
+    $\bm{x} = \left\{ D_{i \mod q} \right\}_{i}$ where $D$ is a sequence of $q$ DMs.
+  \item Gravity sequence:\\
+    $\bm{x} = \left\{\left(\sum_{j=i-q}^{i}{D_{j \mod q}}\right) / 5 \right\}_{i}$ where $D$ is a sequence of $q$ DMs.
+  \item Sparsification:\\
+    $\operatorname{sparsify}(D, p)_{ij} = 0$ if $s > p$ else $D_{ij}$ where $s \sim \mathcal{U}(0,1)$
+\end{itemize}
 
 \section{Training graphs}
 For training and evaluation purposes it was important that the graphs trained on should be representative of real-world networks. It was thought that maybe graphs from this set could be generated. However, it is difficult to define the set of graphs akin to real-world AS networks. Fortunately, there is an open dataset, ``The Internet Topology Zoo''\cite{6027859} which contains a plethora of real-world networks, enough for both training and evaluation so it was decided to use this instead.

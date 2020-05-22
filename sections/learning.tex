@@ -19,7 +19,6 @@ We then extend this model to use an LSTM\cite{hochreiter1997long}. This is becau
     \label{fig:mlp_lstm}
 \end{figure}
 
-\todo{add mlp lstm policy diagram}
 
 \section{GNN policy}
 \label{section:gnn_policy}
@@ -44,7 +43,7 @@ In summary, the inputs are ingoing and outgoing demands for each vertex:
   \bm{V} = \left\{\left(\sum_{j=1}^{|V|}{D_{ij}}, \sum_{j=1}^{|V|}{D_{ji}}\right)\right\}_{i=1:|V|}
 \end{equation}
 
-and the outputs are a weight foe each edge:
+and the outputs are a weight for each edge:
 \begin{equation}
   \label{equation:edge_outputs}
   \bm{E} = \{w\}_{i=1:|E|}

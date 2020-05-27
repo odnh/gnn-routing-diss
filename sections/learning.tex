@@ -56,8 +56,6 @@ Given the caveats of the basic GNN policy described above, it was necessary to d
 
 In the iterative approach we only output the value for a single edge as each action. This means that the network has to be able to output the value for the right edge in the correct action step. The way that this is done is by providing extra information in the observation to help with the embedding. In Placeto, Ravichandra et al. use an RNN with a hand-designed method of pooling and message-passing steps to build a graph embedding feature vector that can be passed as input to the RNN in each step. We instead harness the more recent research on GNNs letting a GNN learn the embedding itself. To do this we modified the simple GNN policy introduced above.
 
-\todo{maybe think of some kind of diagram to shoehorn in here?}
-
 Getting a set of edge weights for a routing from the policy given a demand history takes place in the course of a set of iterations. This is because we can only set one edge value at a time and there are (generally) multiple edges. To do tis we encode the information of which edge we wish to set on the inputs. As before, the node attribute inputs are the demand history as shown in equation~\ref{equation:node_inputs}. However, this time we also create input attributed for the edges. The input attribute vector per edge becomes the 3-tuple defined in equation~\ref{equation:edge_inputs}. That is, a value in the interval $[-1,1]$ denoting the current value for this edge in the routing (and 0 if not set), a binary value from the set ${0,1}$ denoting whether this edge's value has already been set in the routing, and a binary value from the set ${0,1}$ denoting whether this is the edge to be set in the current iteration or not.
 
 \begin{equation}

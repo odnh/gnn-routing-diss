@@ -16,7 +16,7 @@ In the introduction it was described that this project seeks to perform more opt
       \item All traffic for a destination is absorbed at that destination:\\
         $\sum_{u \in \Gamma(v)}{\mathcal{R}_{t,(s,t)}(u)} = 0 \qquad \forall s, t \in V$
     \end{enumerate}
-  \item The \emph{demands} which can be represented as an $D \in \mathbb{R}^{|V|\times|V|}$ matrix called a demand matrix (DM) where each element $D_{st}$ is the traffic demand between the source $s$ and destination $t$.
+  \item The \emph{demands} which can be represented as matrix $D \in \mathbb{R}^{|V|\times|V|}$ called a demand matrix (DM) where each element $D_{st}$ is the traffic demand between the source $s$ and destination $t$.
 \end{itemize}
 
 With these definitions we can now fully describe the movement of traffic over a network. The rest of this work will use just this system and no more or less when talking about networks, routings or demands. In examples we will assume that the network itself is fixed and that traffic is described by sequences of DMs, each representing a discrete time step, which are also fixed. The only thing we are allowed to modify is the routing strategy. Given the above structure, we can define some notions of goodness of a particular routing. In particular, as our aim is to reduce congestion we will make our utility function that of minimising link over-utilisation.
@@ -34,6 +34,7 @@ So that it would be possible to both train and evaluate approaches to the define
 \subsection{Reward calculation}
 As the optimal routing that can be achieved on a given graph varies for different demand matrices, the reward cannot simply be derived from the calculation of the maximum link utilisation. Fortunately, as described in section~\ref{section:multicommodity} we know that an optimal routing does exist and it can be found in polynomial time with linear programming (LP). To do this we solve the problem using the standard LP formulation, minimising the utility function given in equation~\ref{equation:utility}. Therefore, the environment implements a linear solver for the optimal routing to calculate the optimal link utilisation\footnote{The solver is implemented on top of Google OR-Tools\cite{ortools}}. Then, the reward is derived by comparing the routing produced by the RL agent to the calculated optimal routing. This is presented in equation~\ref{equation:reward} where $U_{max}$ is the maximum link utilisation.
 
+\todo[inline]{fix to make the same as updated exponential version}
 \begin{equation}
   \label{equation:reward}
   \mathrm{reward} = -\frac{U_{max_{agent}}}{U_{max_{optimal}}}
@@ -155,11 +156,14 @@ The final strategy we devised is shown in algorithm~\ref{algorithm:pruning}. The
 \end{algorithm}
 
 \section{Traffic demand sequences}
+\label{section:demands}
 We are using RL to approach this problem and the input to the agent is a history of previous demand matrices. The reason for this is that we have made the assumption that the sequence if DMs will have some sort of regularity which we can exploit to predict a routing strategy for the next timestep that is better than the optimal oblivious routing. Therefore, the demand sequences used for training such an agent must be built using some form of regularity. We try two different types of regularity heavily inspired by those selected by Valadarsky\cite{valadarsky2017learning}.
 
 The first kind of regularity is \emph{cyclical}. Here we generate a cycle of demand matrices and the sequence is simply some number of repetitions of this cycle. The second kind is that of a \emph{gravity sequence}\cite{roughan2002experience}. This sequence again starts by defining a cycle which repeats but derives each subsequent DM as an averaging over the history rather than immediately presenting the next DM in the cycle. These scenarios make sense as temporal regularity is often seen in large networks such as those of ISPs\cite{fortz2002optimizing}. We also \emph{sparsify} the DMs (which consists of stochastically removing demands) to add noise to the regularity of the sequence.
 
 The DMs in the cycles themselves are generated using a bimodal model\cite{medina2002traffic}. This is a model where demands are assigned randomly to flows, however, there is a small fixed probability that any such demand will be significantly larger than the rest (an elephant flow) which would impact the link utilisation if not handled carefully (thus aided by routing differently for different DMs).
+
+\todo[inline]{fix the definition of gravity sequence here, it is wrong... Reality is gravity and bimodal are forms of DM, bimodal vms vary and gravity does using sparsity. THese variations are used to build two types of sequence: average sequence and cyclical}
 
 The mathematical definitions for the DMs are as follows:
 \begin{itemize}

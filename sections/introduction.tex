@@ -14,10 +14,10 @@ This project seeks to take the problem specified in ``Learning to Route with Dee
 
 In summary, this study makes the following research contributions:
 \begin{itemize}
-  \item Verifying the results of previous solutions to this problem
-  \item An environment to be able to experiment with RL routing schemes following this model
-  \item Showing that it is possible to use graph neural networks (GNNs) to perform close-to-optimal routing given a history of traffic demands
-  \item Designing a GNN-based scheme that allows this solution to generalise over unseen graphs
+  \item Provides an environment for experimenting with RL in data-driven routing
+  \item Designs a new mapping from edge weights to a fully specified routing
+  \item Introduces policy designs for approaching data-driven routing in a way that is generalisable
+  \item Presents a comprehensive assessment of the performance of different techniques with a specific focus on generalisability over traffic patterns and network topologies.
 \end{itemize}
 
 The rest of the dissertation is structured as follows: chapter~\ref{chapter:background} introduces both previous research in this area and the research on which techniques in this work are based; chapter~\ref{chapter:problem} presents the formal specification of the problem, how the environment was designed, and techniques that made the problem and routing feasible to be performed using RL; chapter~\ref{chapter:learning} describes how the RL policy was designed and trained, and the structure of the GNNs used; chapter~\ref{chapter:evaluation} explains the evaluation framework and examines the results of the experiments performed; and chapter~\ref{chapter:conclusions} summaries the findings and contributions of the entire work as well as providing an insight into possible future work.

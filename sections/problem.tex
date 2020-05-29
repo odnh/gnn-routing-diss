@@ -34,7 +34,6 @@ So that it would be possible to both train and evaluate approaches to the define
 \subsection{Reward calculation}
 As the optimal routing that can be achieved on a given graph varies for different demand matrices, the reward cannot simply be derived from the calculation of the maximum link utilisation. Fortunately, as described in section~\ref{section:multicommodity} we know that an optimal routing does exist and it can be found in polynomial time with linear programming (LP). To do this we solve the problem using the standard LP formulation, minimising the utility function given in equation~\ref{equation:utility}. Therefore, the environment implements a linear solver for the optimal routing to calculate the optimal link utilisation\footnote{The solver is implemented on top of Google OR-Tools\cite{ortools}}. Then, the reward is derived by comparing the routing produced by the RL agent to the calculated optimal routing. This is presented in equation~\ref{equation:reward} where $U_{max}$ is the maximum link utilisation.
 
-\todo[inline]{fix to make the same as updated exponential version}
 \begin{equation}
   \label{equation:reward}
   \mathrm{reward} = -\frac{U_{max_{agent}}}{U_{max_{optimal}}}

@@ -2,8 +2,20 @@
 \label{chapter:conclusions}
 
 \section{Conclusions}
-\todo[inline]{Can't really write this until evaluation is more complete. Overall will summarise what's been done and contributed, results and how they tie into aims.}
+In this work we have sought to provide a generalisable approach to data-driven using deep RL with GNNs. This has consisted of providing a detailed specification of the problem and presenting an environment which can be used to experiment with different techniques to see how well they perform. We also took the approach introduced by Valadarsky et al. and modified it extensively so that it both worked to spread traffic across multipath routes and so that it could work with GNNs. In addition, we designed GNN policy architectures that could be used in conjunction with this problem and more generally provided a connection between an RL library and variable-sized graph network models.
+
+After presenting previous work as well as our new additions we performed extensive experiments on the different policy architectures in different scenarios to assess how well they generalise to different demand matrices followed by different kinds of regularity in demand sequences before finally looking at generalisation to different network topologies. These experiments showed that all these policies can learn to efficiently route a demand matrix, in fact multiple. They also showed that GNNs are able to generalise learned routings. Unfortunately they showed that we were unable to make any of the policies learn to route demand matrices based on a history of previous demands beyond providing a good oblivious routing that did a good job of minimising the utility function (in this case maximum link utilisation).
+
+Overall there has been the presentation of new techniques and a new library along with a mixture of successes and failures. Fortunately we can draw on these failures to inspire new work.
+
 
 \section{Future work}
-\todo[inline]{Again, what future work is relevant does depend on the eventual outcome of the evaluation}
+- using gnns in more areas
+- better approaches to learning
+- look at supervised approaches again but this time with gnns
+- better mapping of edge weights to dest-based routing (this is a v important one)
+- general gnn stuff in networking (suggest some other problem areas maybe with citation?)
+- ease of use of variable sized action / observation space RL algs / libs?
+
+
 

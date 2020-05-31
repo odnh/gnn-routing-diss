@@ -76,19 +76,22 @@ One will notice from this description that the routing derived from such a schem
 \Function{SoftminRouting}{$G$, $\bm{w}$, $\gamma$}
   \For{$(s, t) \in flows$}
     \State $G \gets \operatorname{PruneGraph}(G, (s, t), \bm{w})$
+    \Comment{Convert to a DAG for the source-sink pair}
     \For{$v \in V$}
       \State $d[i] \gets \operatorname{ShortestPath}(i, t)$
+      \Comment{Find the distance of each vertex to the sink}
     \EndFor
     \For{$v \in V$}
       \State $out\_edges \gets \operatorname{GetOutEdges}(v)$
       \State $out\_weights \gets \{w[(u, v)] + d[v] | (u, v) \in out\_edges\}$
+      \State\Comment{Edge length $+$ neighbour's distance}
       \State $softmin\_weights \gets \operatorname{Softmin}(out\_weights, \gamma)$
       \For{$e \in out\_edges$}
         \State $splitting\_ratios[e] \gets softmin\_weights[e]$
       \EndFor
     \EndFor
   \EndFor
-  \State \textbf{return} $softmin\_weights$
+  \State \textbf{return} $splitting\_ratios$
 \EndFunction
 \end{algorithmic}
 \caption{Softmin routing algorithm: the steps taken to convert the learned edge weights given by the RL agent into a fully-defined routing strategy.}
@@ -107,18 +110,22 @@ The final strategy we devised is shown in algorithm~\ref{algorithm:pruning}. The
 \begin{algorithm}[t]
 \small
 \begin{algorithmic}
-\Function{PruneGraph}{$(V, E), (s,t), \bm{w}$}
+\Function{PruneGraph}{$(V, E, W), (s,t)$}
   \State $queue \gets [(0, s, [])]$
+  \Comment{Queue element is: (distance, vertex, parents)}
   \While{$|queue| \not= 0$}
+    \Comment{Run Dijkstra's algorithm}
     \State $(d, v, \bm{p}) \gets \operatorname{pop}(queue)$
     \State $parents[v] \gets \bm{p}$
-    \For $u \in \operatorname{neighbours}(G, v) - \bm{p}$
+    \For{$u \in \operatorname{neighbours}(E, v) - \bm{p}$}
       \If{$u = t$}
+        \Comment{Stop when reach sink}
         \State $\operatorname{append}(parents[t], v)$
-        \ElsIf{$u \in explored$}
+      \ElsIf{$u \in explored$}
+        \Comment{Record when see already explored node}
         \State $\operatorname{append}(frontier\_meets, (v, u))$
       \Else
-        \State $\operatorname{push}(queue, (d + G[u][v], u, [v]))$
+        \State $\operatorname{push}(queue, (d + W(u,v), u, [v]))$
       \EndIf
     \EndFor
     \State $\operatorname{append}(explored, v)$
@@ -126,6 +133,7 @@ The final strategy we devised is shown in algorithm~\ref{algorithm:pruning}. The
 
   \State $queue \gets [t]$
   \While{$|queue| \not= 0$}
+  \Comment{BFS to mark vertices on path source to sink}
     \State $v \gets \operatorname{pop}(queue)$
     \State $\operatorname{append}(on\_path, v)$
     \For{$p \in parents[v]$}
@@ -134,16 +142,20 @@ The final strategy we devised is shown in algorithm~\ref{algorithm:pruning}. The
   \EndWhile
 
   \For{$(u,v) \in frontier\_meets$}
+    \Comment{Assign paths at frontier collisions}
     \State $a \gets \operatorname{ancestor}(E, on\_path, u)$
     \State $b \gets \operatorname{ancestor}(E, on\_path, v)$
     \If{$d[a] = d[b]$}
       \State \textbf{continue}
     \EndIf
-    \State $\operatorname{ConnectPath}(a, u, v, b)$\EndFor
+    \State $\operatorname{ConnectPath}(a, u, v, b)$
+    \Comment{Update parent pointers for new path}
+  \EndFor
 
   \For{$(u,v) \in E$}
-  \If $u \notin on\_path \wedge v \notin on\_path \wedge u \notin parents[v]$
-  \State $E \gets E - \{(u, v)\}$
+    \Comment{Remove edges not leading to sink}
+    \If $u \notin on\_path \wedge v \notin on\_path \wedge u \notin parents[v]$
+      \State $E \gets E - \{(u, v)\}$
     \EndIf
   \EndFor
   \State \textbf{return} $(V, E)$

@@ -1,0 +1,154 @@
+\documentclass{beamer}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{fontspec}
+\usepackage[backend=biber]{biblatex}
+
+% THEME START
+\definecolor{CBlue}{HTML}{0784ba}
+\usefonttheme{professionalfonts} % using non standard fonts for beamer
+\usefonttheme{serif}
+\setmainfont{Fira Sans Regular}
+
+\setbeamertemplate{footline}[frame number]{}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}[square]
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+
+\setbeamercolor{palette primary}{bg=CBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=CBlue,fg=white}
+\setbeamercolor{palette tertiary}{bg=CBlue,fg=white}
+\setbeamercolor{palette quaternary}{bg=CBlue,fg=white}
+\setbeamercolor{structure}{fg=CBlue} % itemize, enumerate, etc
+\setbeamercolor{section in toc}{fg=CBlue} % TOC sections
+\setbeamercolor{footline}{fg=gray}
+%\setbeamercolor{footline}{fg=CBlue, bg=white}
+% THEME END
+
+\title{Generalisable data-driven routing using Deep RL with GNNs}
+\author{Oliver Hope}
+\institute{Jesus College}\date{}
+
+\addbibresource{refs.bib}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Background}
+\begin{columns}
+  \begin{column}{0.5\textwidth}
+    \begin{itemize}
+      \item Intradomain routing
+      \item Multicommodity flow \& load balancing
+      \item Data-driven routing
+      \item Oblivious strategies\cite{racke2002minimizing}
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.5\textwidth}
+    \includegraphics[width=\textwidth]{figures/intradomain.png}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Learning to Route}
+  \begin{itemize}
+    \item Recent paper: ``Learning To Route with Deep RL''\cite{valadarsky2017learning}
+    \item Sought to perform data-driven routing better than optimal oblivious scheme
+    \item Under assumption of some regularity in traffic
+    \item RL takes advantage by the input (observation) being historic traffic statistics
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Aims}
+  \begin{itemize}
+    \item Build an environment for testing such routing schemes
+    \item Implement the previously introduced policies
+    \item Design new policies that can generalise to different graphs
+    \item Provide a comprehensive assessment of generalisability (sequence and topology)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{GNN Policy}
+  \begin{itemize}
+    \item An ``Encode-process-decode''\cite{battaglia2018relational} policy
+    \item Iterative and non-iterative versions
+    \item Input and output transformations
+  \end{itemize}
+  \vspace{2em}
+  \includegraphics[width=\textwidth]{figures/encode_process_decode.pdf}
+\end{frame}
+
+\begin{frame}{Action translation}
+  Output is a weight per edge, we transform to a routing by:
+  \begin{enumerate}
+    \item Convert graph to a DAG for each source-sink pair
+    \item Finding distance to sink for each vertex
+    \item Use distances as splitting ratios, scaled using softmin function
+  \end{enumerate}
+  
+  $$\operatorname{softmin}(\mathbf{x}) = \left( \frac{e^{- \gamma x_i}}{\sum_j{e^{- \gamma x_j}}} \right)_i$$
+\end{frame}
+
+\begin{frame}{Evaluation}
+\begin{columns}
+  \begin{column}{0.5\textwidth}
+    Generalising over sequences
+    \begin{itemize}
+      \item Different types of demand generation
+      \item Different types of sequence generation
+    \end{itemize}
+    \resizebox{\textwidth}{!}{\input{figures/exp2.pgf}}
+  \end{column}
+  \begin{column}{0.5\textwidth}
+    Generalising over graphs
+    \begin{itemize}
+      \item Graphs with small changes
+      \item Entirely different graphs
+    \end{itemize}
+    \vspace{\baselineskip}
+    \vspace{\baselineskip}
+    \resizebox{\textwidth}{!}{\input{figures/exp4.pgf}}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Contributions \& Future work}
+\begin{columns}
+  \begin{column}{0.5\textwidth}
+    Contributions:
+    \begin{itemize}
+      \item Shown graph generalisation works and a policy that can do it.
+      \item Assessed the generalisation ability and learnability of policies to the problem
+      \item Provided an environment that can be used for experimentation
+      \item Devised a new and better mapping from edge weights to splitting ratios
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.5\textwidth}
+    Future work:
+    \begin{itemize}
+      \item LSTM method gave surprising results so could be looked into further
+      \item Devising new mappings to routings would be advisable
+      \item Hierarchical techniques could aid learning
+      \item Translating onto real SDN systems for real experimentation
+    \end{itemize}
+    \vspace{\baselineskip}
+    \vspace{0.9\baselineskip}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\textcolor{CBlue}{\Huge Questions?}
+\end{center}
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+    \footnotesize
+    \frametitle{References}
+    \printbibliography
+\end{frame}
+
+\end{document}

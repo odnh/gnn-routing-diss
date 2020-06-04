@@ -4,9 +4,15 @@
 \section{Introduction}
 In this chapter we describe the formal specification of the problem to be solved whilst also introducing some tactics that have been used to make this more feasible. This includes a description of methods to reduce the action space and how this can still result in a fully defined routing. As part of this we introduce an algorithm to remove unwanted cycles from a network graph.
 
-\section{Data-driven routing}
+\section{Work from ``Learning to route with Deep RL''}
+In chapter~\ref{chapter:background} we introduced the work of Valadarsky et al.\cite{valadarsky2017learning} and that it was the basis for the work performed here. Specifically, that paper introduced a formal structure within which to define an \ac{rl} routing policy, a specification for the generation of \acp{dm} to be trained over, a translation from edge weights to routing strategies, and formulation of a reward function.
+
+The policy that they introduced was an \ac{mlp}-based policy. The issue with this is that its input and output sizes are fixed meaning that it will only be usable for a single graph. This means that it must be trained separately for each network, cannot be used when there is a fault and is unusable for dynamic networks. It was also only evaluated on one type of sequence at a time meaning that we cannot know if a model trained on one type of sequence generalises to others at all.
+
+
+\section{Routing formal specification}
 \label{section:routing}
-In the introduction it was described that this project seeks to perform more optimal routing in the presence of knowledge of traffic demands than oblivious techniques. To do this we must first define the routing model it acts on. We take a similar model to that of Valadarsky\cite{valadarsky2017learning}. In this context we consider a static network upon which we can specify a routing, and which also has a set of traffic demands associated with it in the form of traffic matrices. Formally we have:
+In the introduction it was described that this project seeks to perform routing that is closer to the optimal in the presence of knowledge of traffic demands than oblivious techniques. To do this we must first define the routing model it acts on. We take a similar model to that of Valadarsky et al. In this context we consider a static network upon which we can specify a routing, and which also has a set of traffic demands associated with it in the form of traffic matrices. Formally we have:
 \begin{itemize}
   \item The \emph{network} which is modelled as a directed graph where all the edges have a link capacity: $G=(V,E,c)$ where $V$ is the set of vertices, $E$ is the set of edges and $c : E \rightarrow \mathbb{R}^+$ is a function mapping each edge in the graph to its capacity.
   \item The \emph{routing} which for each flow (demand and source and destination pair) specifies at each vertex how much of that flow should be sent down each of its edges to each of its neighbours. Therefore, if we define $\Gamma(v)$ to be the set of all neighbours of vertex $v$ then we can define a routing to be $\mathcal{R}_{v,(s,t)} : \Gamma(v) \rightarrow [0,1]$ with $\mathcal{R}_{v,(s,t)}(u)$ as the proportion of the flow passing from $s$ to $t$ through vertex $v$ that is forwarded to vertex $u$. Importantly, any routing specified must obey the two constraints:
@@ -16,10 +22,10 @@ In the introduction it was described that this project seeks to perform more opt
       \item All traffic for a destination is absorbed at that destination:\\
         $\sum_{u \in \Gamma(v)}{\mathcal{R}_{t,(s,t)}(u)} = 0 \qquad \forall s, t \in V$
     \end{enumerate}
-  \item The \emph{demands} which can be represented as matrix $D \in \mathbb{R}^{|V|\times|V|}$ called a demand matrix (DM) where each element $D_{st}$ is the traffic demand between the source $s$ and destination $t$.
+  \item The \emph{demands} which can be represented as matrix $D \in \mathbb{R}^{|V|\times|V|}$ called a \ac{dm} where each element $D_{st}$ is the traffic demand between the source $s$ and destination $t$.
 \end{itemize}
 
-With these definitions we can now fully describe the movement of traffic over a network. The rest of this work will use just this system and no more or less when talking about networks, routings or demands. In examples we will assume that the network itself is fixed and that traffic is described by sequences of DMs, each representing a discrete time step, which are also fixed. The only thing we are allowed to modify is the routing strategy. Given the above structure, we can define some notions of goodness of a particular routing. In particular, as our aim is to reduce congestion we will make our utility function that of minimising link over-utilisation.
+With these definitions we can now fully describe the movement of traffic over a network. The rest of this work will use just this system and no more or less when talking about networks, routings or demands. In examples we will assume that the network itself is fixed and that traffic is described by sequences of \acp{dm}, each representing a discrete time step, which are also fixed. The only thing we are allowed to modify is the routing strategy. Given the above structure, we can define some notions of goodness of a particular routing. In particular, as our aim is to reduce congestion we will make our utility function that of minimising link over-utilisation.
 
 This can be defined to be minimising $U_{max}$ in equation~\ref{equation:utility} where $U(u,v)$ is the utilisation of the link $(u,v)$.
 \begin{equation}
@@ -29,20 +35,35 @@ This can be defined to be minimising $U_{max}$ in equation~\ref{equation:utility
 
 
 \section{The environment}
-So that it would be possible to both train and evaluate approaches to the defined problem, it was necessary first to construct an environment to simulate the desired responses that an RL agent could interact with. For easy interoperability with existing libraries, it was decided that this environment should have an OpenAI Gym\cite{brockman2016openai} API. Alongside the internal operations of the environment being correct, its interface to the RL agent is important as it has a large impact on how well the agent can learn. We will now proceed to discuss how the environment calculates rewards, the format of observations it gives to the agent and the format of actions it receives form the agent.
+\todo{GIVE A DIAGRAM OF HOW THIS ALL WORKS HERE}
+So that it would be possible to both train and evaluate approaches to the defined problem, it was necessary first to construct an environment to simulate the desired responses that a \ac{rl} agent could interact with. For easy interoperability with existing libraries, it was decided that this environment should have an OpenAI Gym\cite{brockman2016openai} \acs{api}. Alongside the internal operations of the environment being correct, its interface to the \ac{rl} agent is important as it has a large impact on how well the agent can learn. A diagram of the overall structure is given in figure~\ref{fig:environment}. We will now proceed to discuss how the environment calculates rewards, the format of observations it gives to the agent and the format of actions it receives form the agent.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{figures/environment.pdf}
+  \caption{Environment dataflow in a single timestep. Top left is the generated demand sequence, and top right is the graph we are outing over. We can see that the previous $n$ demands (here 3) are given to the policy while the reward is calculated using the new demand for this timestep.}
+  \label{fig:environment}
+\end{figure}
 
 \subsection{Reward calculation}
-As the optimal routing that can be achieved on a given graph varies for different demand matrices, the reward cannot simply be derived from the calculation of the maximum link utilisation. Fortunately, as described in section~\ref{section:multicommodity} we know that an optimal routing does exist and it can be found in polynomial time with linear programming (LP). To do this we solve the problem using the standard LP formulation, minimising the utility function given in equation~\ref{equation:utility}. Therefore, the environment implements a linear solver for the optimal routing to calculate the optimal link utilisation\footnote{The solver is implemented on top of Google OR-Tools\cite{ortools}}. Then, the reward is derived by comparing the routing produced by the RL agent to the calculated optimal routing. This is presented in equation~\ref{equation:reward} where $U_{max}$ is the maximum link utilisation.
+As the optimal routing that can be achieved on a given graph varies for different demand matrices, the reward cannot simply be derived from the calculation of the maximum link utilisation. Fortunately, as described in section~\ref{section:multicommodity} we know that an optimal routing does exist and it can be found in polynomial time with \ac{lp}. To do this we solve the problem using the standard \ac{lp} formulation, minimising the utility function given in equation~\ref{equation:utility}. Therefore, the environment implements a linear solver for the optimal routing to calculate the optimal link utilisation\footnote{The solver is implemented on top of Google OR-Tools\cite{ortools}}. Then, the reward is derived by comparing the routing produced by the \ac{rl} agent to the calculated optimal routing. The original work used equation~\ref{equation:reward_old} where $U_{max}$ is the maximum link utilisation. However, this reward does not well represent the increased difficulty in improvement the closer the routing is to the optimal and so leads to learning converging too early. To solve this problem we instead used equation~\ref{equation:reward_new} which gives smaller increases in the ratio closer to the optimal congestion a higher relative reward.
 
-\begin{equation}
-  \label{equation:reward}
-  \mathrm{reward} = -\frac{U_{max_{agent}}}{U_{max_{optimal}}}
-\end{equation}
+\begin{align}
+  \begin{split}
+    \label{equation:reward_old}
+    \mathrm{reward} = -\frac{U_{max_{agent}}}{U_{max_{optimal}}}
+  \end{split}\\
+  \begin{split}
+    \label{equation:reward_new}
+    \mathrm{reward} = e^{\frac{U_{max_{optimal}}}{U_{max_{agent}}}}
+  \end{split}
+\end{align}
+
 
 \subsection{Observations}
-In the original ``Learning to route'' paper, an observation was a history of traffic demands, which was presented as a list of traffic matrices which was then flattened for input to the MLP. However, this works aims to make the solution generalisable over graphs of different shapes using GNNs. As GNNs work on graphs, it is possible to vary both the number of vertices and edges that are input to a GNN (something not possible with an MLP). However, this previous way of managing demands as observations would no longer work. The reason for this is that a sensible way to input the demands to the GNN would be to place the demands associated with each vertex on that vertex as vertex attributes. The issue here is that the number of demands a vertex has scales with the number of nodes in the graph. Therefore the size of node attributes in the GNN would have to grow as more vertices are added which is unfortunately not possible within the structure.
+In the original ``Learning to route with Deep RL'' paper, an observation was a history of traffic demands, which was presented as a list of traffic matrices which was then flattened for input to the \ac{mlp}. However, this works aims to make the solution generalisable over graphs of different shapes using \acp{gnn}. As \acp{gnn} work on graphs, it is possible to vary both the number of vertices and edges that are input to a \ac{gnn} (something not possible with an \ac{mlp}). However, this previous way of managing demands as observations would no longer work. The reason for this is that a sensible way to input the demands to the \ac{gnn} would be to place the demands associated with each vertex on that vertex as vertex attributes. The issue here is that the number of demands a vertex has scales with the number of nodes in the graph. Therefore the size of node attributes in the \ac{gnn} would have to grow as more vertices are added which is unfortunately not possible within the structure.
 
-To solve this issue we had to find a way to associate the demands with the correct nodes in a way that would still allow the agent to learn but would require a constant amount of space per vertex as the graph grows. The solution used to this problem was summing for each vertex the total outgoing flow and incoming flow meaning that the observation size is now $O(|V|)$ as opposed to $O(|V|^2)$ and so can be used with a GNN.
+To solve this issue we had to find a way to associate the demands with the correct nodes in a way that would still allow the agent to learn but would require a constant amount of space per vertex as the graph grows. The solution used to this problem was summing for each vertex the total outgoing flow and incoming flow meaning that the observation size is now $O(|V|)$ as opposed to $O(|V|^2)$ and so can be used with a \ac{gnn}.
 
 One other important addition to make this new structure work was normalising the inputs as otherwise the more vertices in a graph, the higher the totals for each vertex will on average be which is unwanted behaviour.
 
@@ -94,16 +115,15 @@ One will notice from this description that the routing derived from such a schem
   \State \textbf{return} $splitting\_ratios$
 \EndFunction
 \end{algorithmic}
-\caption{Softmin routing algorithm: the steps taken to convert the learned edge weights given by the RL agent into a fully-defined routing strategy.}
+\caption{Softmin routing algorithm: the steps taken to convert the learned edge weights given by the \ac{rl} agent into a fully-defined routing strategy.}
 \label{algorithm:softmin}
 \end{algorithm}
 
 \subsection{Multipath DAG}
-
 The breaking of loops is a problem faced often in routing. In many protocols such as shortest-path based protocols it is not usually an issue as the shortest path by definition cannot contain any cycles but this is not always true as distance vector protocols can run into issues when the network state has not yet converged. It would be easy to remove all loops between source and destination by only keeping the shortest path. However, this does not help with load-balancing and so is not a useful strategy here. What we aim to do is take advantage of multipath with our routings so the longer paths need to remain in the network.
 
-An approach to this problem is looking into ways to convert the graph to a directed acyclic graph (DAG) for each flow where the source and destination become source and sink. Similar work to this is in the use of destination-oriented directed acyclic graphs (DODAG) in the routing protocol for low-powered and lossy networks (RLP)\cite{rfc6550}. There has been research in the space of constructing DODAGs for multipath applications such as work by Iova et al.\cite{iova2015using} however, being for RPL, this focussed on energy minimisation amongst other things.
-Therefore, we had to devise a new algorithm to efficiently retain as many paths from destination to source as possible whilst avoiding loops. One attempt was to use a weighted breadth first search (BFS) from the sink to create a partial ordering on the graph and then only retaining edges that take us closer to the source. However, this still leads to the loss off too many usable links.
+An approach to this problem is looking into ways to convert the graph to a \ac{dag} for each flow where the source and destination become source and sink. Similar work to this is in the use of \ac{dodag} in the \ac{rlp}\cite{rfc6550}. There has been research in the space of constructing \acp{dodag} for multipath applications such as work by Iova et al.\cite{iova2015using} however, being for \ac{rlp}, this focussed on energy minimisation amongst other things.
+Therefore, we had to devise a new algorithm to efficiently retain as many paths from destination to source as possible whilst avoiding loops. One attempt was to use a weighted \ac{bfs} from the sink to create a partial ordering on the graph and then only retaining edges that take us closer to the source. However, this still leads to the loss off too many usable links.
 
 The final strategy we devised is shown in algorithm~\ref{algorithm:pruning}. The input to the algorithm is the graph with edges weighted by the agent. We begin by running Dijkstra's algorithm from the source, recording for each node it's parent (in the case of the sink, multiple parents) and any locations where the frontier hits an already explored vertex, called \emph{frontier meets}. Then we trace back from the sink to source, following parent links, and marking any vertex we pass through as \emph{on path}. At this point we have only recorded any shortest paths. Therefore, for every \emph{frontier meet} we find the distance to sink of the first ancestor from each side of the edge to the sink. We then update all the parent information and \emph{on path} information for these vertices so that it becomes a valid path from the more distant ancestor to the closer ancestor. Finally, we remove all edges between nodes that are not \emph{on path} and all edges that are \emph{on path} but where the head of the edge is at the parent.
 
@@ -161,15 +181,15 @@ The final strategy we devised is shown in algorithm~\ref{algorithm:pruning}. The
   \State \textbf{return} $(V, E)$
 \EndFunction
 \end{algorithmic}
-\caption{DAG conversion algorithm retaining high path count from source to sink}
+\caption{\ac{dag} conversion algorithm retaining high path count from source to sink}
 \label{algorithm:pruning}
 \end{algorithm}
 
 \section{Traffic demand sequences}
 \label{section:demands}
-We are using RL to approach this problem and the input to the agent is a history of previous demand matrices. The reason for this is that we have made the assumption that the sequence if DMs will have some sort of regularity which we can exploit to predict a routing strategy for the next timestep that is better than the optimal oblivious routing. Therefore, the demand sequences used for training such an agent must be built using some form of regularity. We try two different types of regularity heavily inspired by those selected by Valadarsky\cite{valadarsky2017learning}.
+We are using \ac{rl} to approach this problem and the input to the agent is a history of previous demand matrices. The reason for this is that we have made the assumption that the sequence if \acp{dm} will have some sort of regularity which we can exploit to predict a routing strategy for the next timestep that is better than the optimal oblivious routing. Therefore, the demand sequences used for training such an agent must be built using some form of regularity. We try two different types of regularity heavily inspired by those selected by Valadarsky\cite{valadarsky2017learning}.
 
-The first kind of regularity is \emph{cyclical}. Here we generate a cycle of demand matrices and the sequence is simply some number of repetitions of this cycle. The second kind is and \emph{averaging} sequence which is generated by taking a sequence of demand matrices and averaging over the last $n$ when outputting the next demand. These scenarios make sense as temporal regularity is often seen in large networks such as those of ISPs\cite{fortz2002optimizing}.
+The first kind of regularity is \emph{cyclical}. Here we generate a cycle of demand matrices and the sequence is simply some number of repetitions of this cycle. The second kind is and \emph{averaging} sequence which is generated by taking a sequence of demand matrices and averaging over the last $n$ when outputting the next demand. These scenarios make sense as temporal regularity is often seen in large networks such as those of \acp{isp}\cite{fortz2002optimizing}.
 
 The demands used to generate the sequences also come in two types. The first is the \emph{bimodal}\cite{medina2002traffic} demand where demands between pairs of nodes are drawn randomly from one of two normal distributions with different means to simulate standard network traffic with occasional elephant flows. The other is a \emph{gravity} demand\cite{roughan2002experience}. This is generated in a deterministic manner taking into account the structure of the network. Effectively we approximate the ingoing flow and outgoing flow to each node from the capacities of their edges. As this demand matrix is deterministic, to add variance allowing us to build sequences of different demands we employ a technique called \emph{sparsification} whereby we stochastically remove demands between some nodes when building the sequence.
 
@@ -188,4 +208,4 @@ The formal definitions for the demand matrix sequences are as follows:
 \end{itemize}
 
 \section{Training graphs}
-For training and evaluation purposes it was important that the graphs trained on should be representative of real-world networks. It was thought that maybe graphs from this set could be generated. However, it is difficult to define the set of graphs akin to real-world AS networks. Fortunately, there is an open dataset, ``The Internet Topology Zoo''\cite{6027859} which contains a plethora of real-world networks, enough for both training and evaluation so it was decided to use this instead.
+For training and evaluation purposes it was important that the graphs trained on should be representative of real-world networks. It was thought that maybe graphs from this set could be generated. However, it is difficult to define the set of graphs akin to real-world \ac{as} networks. Fortunately, there is an open dataset, ``The Internet Topology Zoo''\cite{6027859} which contains a plethora of real-world networks, enough for both training and evaluation so it was decided to use this instead.

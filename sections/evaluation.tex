@@ -1,7 +1,7 @@
 \chapter{Evaluation}
 \label{chapter:evaluation}
 
-\subsection{Aims}
+\section{Aims}
 So far we have described the problem, approaches to a solution, and how to build different RL approaches that seek to solve it. The aim stated at the beginning of this work was to use RL to perform generalisable data-driven routing. Therefore, this evaluation seeks to assess:
 
 \begin{enumerate}
@@ -22,7 +22,7 @@ For the reinforcement learning we used the implementation of PPO (PPO2) from the
 
 
 \subsection{Difficulties}
-Combining RL libraries with GNN libraries was in fact harder than originally anticipated. This is because a GNN can have a variable sized input and output whilst maintaining a fixed number of trainable variables. Most RL algorithms require a fixed sized ouptut to function to train correctly. The GNN iterative approach does have a fixed output size (although the non-iterative approach does not). However, for simplicity most RL libraries assume a fixed size input to the algorithm. Although PPO is on-policy and the policy itself (a GNN) can take a variable-sized input and return a fixed-size output most RL libraries do not support this behaviour. Therefore, achieving interoperability between stable-baselines and Graph Nets required extensive work. This was mainly because Graph Nets maintains the ability to batch while having variable sizes by flattening batches into linear inputs whilst all RL libraries use an extra tensor dimension which does not allow for variable sizes. Fortunately, a work-around was possible but it did have a performance impact for the training time.
+Combining RL libraries with GNN libraries was in fact harder than originally anticipated. This is because a GNN can have a variable sized input and output whilst maintaining a fixed number of trainable variables. Most RL algorithms require a fixed sized output to function to train correctly. The GNN iterative approach does have a fixed output size (although the non-iterative approach does not). However, for simplicity most RL libraries assume a fixed size input to the algorithm. Although PPO is on-policy and the policy itself (a GNN) can take a variable-sized input and return a fixed-size output most RL libraries do not support this behaviour. Therefore, achieving interoperability between stable-baselines and Graph Nets required extensive work. This was mainly because Graph Nets maintains the ability to batch while having variable sizes by flattening batches into linear inputs whilst all RL libraries use an extra tensor dimension which does not allow for variable sizes. Fortunately, a work-around was possible but it did have a performance impact for the training time.
 
 
 \section{Baselines}
@@ -45,7 +45,7 @@ We chose to use the Abilene graph from the Topology Zoo dataset for these experi
     \label{fig:exp_static}
 \end{figure}
 
-The results of this experiment can be seen in figure \ref{fig:exp_static}. From this we can see that all policies outperform the baseline which was expected as the baseline does not allow for multipath routing. We an also see that for all policies, tests over the same single DM used in training perform better than when training and testing on multiple DMs. This is to be expected as we would assume that when just a single DM, the policies could learn the most optimal routing that they can represent. Then, when we bring multiple DMs into the mix this means the internal structure cannot be solely focussed on optimising for one DM so there will be some loss of performance. However, this does also present the issue that there is a problem with generalisation as if the policies could generalise perfectly we would expect to see no difference but this is unfortunately not the case. This issue is explored further in section~\ref{overfit}.
+The results of this experiment can be seen in figure \ref{fig:exp_static}. From this we can see that all policies outperform the baseline which was expected as the baseline does not allow for multipath routing. We an also see that for all policies, tests over the same single DM used in training perform better than when training and testing on multiple DMs. This is to be expected as we would assume that when just a single DM, the policies could learn the most optimal routing that they can represent. Then, when we bring multiple DMs into the mix this means the internal structure cannot be solely focussed on optimising for one DM so there will be some loss of performance. However, this does also present the issue that there is a problem with generalisation as if the policies could generalise perfectly we would expect to see no difference but this is unfortunately not the case. This issue is explored further in section~\ref{section:overfit}.
 
 
 \subsection{Learning from temporal regularities}

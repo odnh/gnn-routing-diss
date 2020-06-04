@@ -40,8 +40,9 @@
   \begin{column}{0.5\textwidth}
     \begin{itemize}
       \item Intradomain routing
+      \item Minimising congestion
+      \item Multipath routing
       \item Multicommodity flow \& load balancing
-      \item Data-driven routing
       \item Oblivious strategies\cite{racke2002minimizing}
     \end{itemize}
   \end{column}
@@ -63,18 +64,25 @@
 
 \begin{frame}{Aims}
   \begin{itemize}
-    \item Build an environment for testing such routing schemes
-    \item Implement the previously introduced policies
     \item Design new policies that can generalise to different graphs
-    \item Provide a comprehensive assessment of generalisability (sequence and topology)
+      \begin{itemize}
+        \item Policy design
+        \item Mapping to routing
+        \item Application of learning algrotihms
+      \end{itemize}
+    \item Provide a comprehensive assessment of generalisability
+      \begin{itemize}
+        \item Different sequnece types
+        \item Different toopologies
+      \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}{GNN Policy}
   \begin{itemize}
     \item An ``Encode-process-decode''\cite{battaglia2018relational} policy
-    \item Iterative and non-iterative versions
     \item Input and output transformations
+    \item Iterative and non-iterative versions
   \end{itemize}
   \vspace{2em}
   \includegraphics[width=\textwidth]{figures/encode_process_decode.pdf}
@@ -96,8 +104,8 @@
   \begin{column}{0.5\textwidth}
     Generalising over sequences
     \begin{itemize}
-      \item Different types of demand generation
-      \item Different types of sequence generation
+      \item Different types of generated demand matrix
+      \item Different types of generated sequence
     \end{itemize}
     \resizebox{\textwidth}{!}{\input{figures/exp2.pgf}}
   \end{column}
@@ -121,8 +129,8 @@
     \begin{itemize}
       \item Shown graph generalisation works and a policy that can do it.
       \item Assessed the generalisation ability and learnability of policies to the problem
+      \item Devised an improved mapping from edge weights to splitting ratios for RL
       \item Provided an environment that can be used for experimentation
-      \item Devised a new and better mapping from edge weights to splitting ratios
     \end{itemize}
   \end{column}
   \begin{column}{0.5\textwidth}

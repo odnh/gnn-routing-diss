@@ -12,5 +12,5 @@ presentation:
 
 clean:
 	$(RM) -f main.pdf presentation.pdf
-	$(RM) -f *.log *.aux *.toc *.bbl *.lot *.lof *.blg *.bcf *.xml *.wcdetail
+	$(RM) -f *.log *.aux *.toc *.bbl *.lot *.lof *.blg *.bcf *.xml *.wcdetail *.wc *.acr *.nav *.snm *.out
 

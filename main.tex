@@ -23,6 +23,7 @@
 \usepackage{algorithm}
 \usepackage{algcompatible}
 \usepackage{algpseudocode}
+\usepackage{acro}
 \usepackage[hidelinks=true]{hyperref}
 
 % remove this when done
@@ -32,19 +33,16 @@
 \renewcommand{\Comment}[2][.525\linewidth]{%
   \leavevmode\hfill\makebox[#1][l]{$\triangleright$~#2}}
   
-% perform detailed wordcount, TODO: remove when done
 \usepackage{shellesc}
-\newcommand{\detailtexcount}[1]{%
-  \ShellEscape{texcount -merge -sum -q #1.tex > #1.wcdetail }%
-  \verbatiminput{#1.wcdetail}%
-}
 \newcommand{\texcount}[1]{%
   \ShellEscape{texcount -merge -sum -q -brief -total -0 #1.tex > #1.wc }%
   \input{#1.wc}%
 }
 
-
+% add bibliography
 \addbibresource{refs.bib}
+% add acronyms
+\input{sections/acronyms}
 
 %% START OF DOCUMENT
 \begin{document}
@@ -83,6 +81,14 @@
 \appendix
 \singlespacing
 
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+\printacronyms[name=List of Abbreviations]
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
 \printbibliography
 
 \end{document}

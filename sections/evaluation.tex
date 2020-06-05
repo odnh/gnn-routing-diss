@@ -22,13 +22,24 @@ For the reinforcement learning we used the implementation of \ac{ppo} (PPO2) fro
 
 The hardware used for all the experiments was a single virtual machine running Ubuntu Linux 18.04 with access to 8 CPU cores and an NVIDIA Quadro RTX 8000 GPU.
 
+\subsection{Graph used}
+
+For most of the experiments we used the Abilene graph from the Topology Zoo dataset. This was because it is fairly small which reduces learning time while still being large enough to exhibit enough complexity to make the results interesting and useful. We did separately run smaller tests on other graphs from the dataset and achieved similar results. The graph itself can be seen in figure~\ref{fig:abilene}. It has a total of 11 vertices, 28 edges (or 14 bidirectional edges) and is representative in structure of other \ac{as} graphs, which are generally planar and of a similar scale.
+
+\begin{figure}
+    \centering
+    \resizebox{\textwidth}{!}{\input{figures/abilene.tex}}
+    \caption{Abilene network graph topology.}
+    \label{fig:abilene}
+\end{figure}
+
 
 \subsection{Difficulties}
 Combining \ac{rl} libraries with \ac{gnn} libraries was in fact harder than originally anticipated. This is because a \ac{gnn} can have a variable sized input and output whilst maintaining a fixed number of trainable variables. Most \ac{rl} algorithms require a fixed sized output to function to train correctly. The \ac{gnn} iterative approach does have a fixed output size (although the non-iterative approach does not). However, for simplicity most \ac{rl} libraries assume a fixed size input to the algorithm. Although \ac{ppo} is on-policy and the policy itself (a \ac{gnn}) can take a variable-sized input and return a fixed-size output most \ac{rl} libraries do not support this behaviour. Therefore, achieving interoperability between stable-baselines and Graph Nets required extensive work. This was mainly because Graph Nets maintains the ability to batch while having variable sizes by flattening batches into linear inputs whilst all \ac{rl} libraries use an extra tensor dimension which does not allow for variable sizes. Fortunately, a work-around was possible but it did have a performance impact for the training time.
 
 
 \section{Baselines}
-In order to be able to tell how good the results of the new methods are we require a comparison. For this comparison we decided to use two different types of baseline. The first of these is a simple \ac{mlp}-only policy as introduced by Valadarsky. This is because it is the method that we are seeking to improve upon by adding the ability to generalise over different graphs without impacting performance in predicting good routing strategies. We also add a simple \ac{lstm} strategy with the aim of showing that the fixed memory length imposed by how we have structured the policies does not overly weaken how the agent interprets and learns temporal regularity.
+In order to be able to tell how good the results of the new methods are we require a comparison. For this comparison we decided to use two different types of baseline. The first of these is a simple \ac{mlp}-only policy as introduced by Valadarsky. This is because it is the method that we are seeking to improve upon by adding the ability to generalise over different graphs without impacting performance in predicting good routing strategies. We also add a simple \ac{lstm} strategy with the aim of examining if the fixed memory length imposed by how we have structured the policies does not overly weaken how the agent interprets and learns from temporal regularity.
 
 The second baseline is to show that the routings the policies learn and produce are in fact useful. In the chapter~\ref{chapter:background} we introduced the idea of an oblivious routing scheme, one which aims to provide a good routing strategy regardless of the particular demands on the network at any one time. As discussed, there is a lot of research in this area with many examples of promising results. However, in the absence of any readily-available open source code it was hard to combine any of these complex algorithms with the environment. Therefore, as an oblivious baseline we have used shortest-path routing as it is already the most common way that routing is performed within \acp{as}, is easy to implement without errors, and provides reasonable performance.
 
@@ -38,7 +49,7 @@ The second baseline is to show that the routings the policies learn and produce 
 \label{section:exp_static}
 The first experiment was designed to discover if, given a demand matrix, each of the policies would be able to learn to route the traffic over the graph with a low link utilisation. The reason for this experiment is that this ability is a prerequisite for being able to predict good routing strategies for the next step given a demand history as that is the same problem but with less exact information.
 
-We chose to use the Abilene graph from the Topology Zoo dataset for these experiments and training was performed using 10 length one sequences. The policy history length was also one containing the same demand matrix. We then performed two different types of test. The first training and test was using a single demand matrix. The second used a set of different demand matrices for training and another set of different demand matrices for testing.
+We chose to use the Abilene graph from the Topology Zoo dataset for these experiments and training was performed using 100 different \acp{dm}. The policy history length was one containing the same demand matrix as that being tested. We then performed two different types of test. The first training and test was using a single demand matrix. The second used a set of different demand matrices for training (all 100) and another set of different demand matrices for testing (a different 100). For each experiment the tests were run 10 times.
 
 \begin{figure}
     \centering
@@ -53,7 +64,7 @@ The results of this experiment can be seen in figure \ref{fig:exp_static}. From 
 \subsection{Learning from temporal regularities}
 As one express aim of this project was to predict good routing strategies to use given a history of traffic information, the next step was to verify if the policies are able to learn to give good routings for sequences which exhibit some form of temporal regularity. For this, we decided to train and test on cyclical and averaging sequences of bimodal demand matrices and gravity demand matrices with varying sparsity (as defined in section~\ref{section:demands}). This is because they are both are good examples of realistic traffic patterns and the cycles and averaging are strong forms of regularity so are a good test for showing if learning to predict routing strategies based on regularity will work.
 
-Again, we used the Abilene graph for these experiments. The sequences used to train on were N different cyclic sequences with cycle length N, total sequence length N, and the memory length for the policy was 10. For testing, sequences of the same cycle lengths were used but with different demand matrices creating the cycles. Tests were performed for both the bimodal and gravity \acp{dm} and over both cyclical and averaging sequences.
+Again, we used the Abilene graph for these experiments. The sequences used to train on were 100 different cyclic sequences with cycle length 5, total sequence length 10, and the memory length for the policy was 10. For testing, sequences of the same cycle lengths were used but with different demand matrices creating the cycles. Tests were performed for both the bimodal and gravity \acp{dm} and over both cyclical and averaging sequences. For each experiment the tests were run 10 times.
 
 \begin{figure}
     \centering
@@ -65,7 +76,7 @@ Again, we used the Abilene graph for these experiments. The sequences used to tr
 The results of this experiment can be seen in figure \ref{fig:exp_cyclic}. From this figure we can see that unfortunately all of the policies perform relatively badly. This is likely due to reasons discussed in detail in section~\ref{section:overfit}. Beyond the relative performance of different policies be can draw further conclusions from this plot. The first is that even though, as expected, different types of traffic distribution will cause different levels of link utilisation it is also the case that our softmin routing representation is able to achieve results closer to the optimum utilisation for some types of traffic than others. This can be seen from the fact that the ratio between the achieved utilisation and optimal utilisation is always less for the sequences built using bimodal \acp{dm} than those built using sparsified gravity \acp{dm} for all policies. On the other hand, the type of regularity induced (a cyclic or averaging sequence) does not seem to have the same kind of impact as it is not the case that all the policies perform better for one type of sequence than the other. However this may be due to reasons discussed in section~\ref{section:overfit}.
 
 \subsection{Generalising to different cycle lengths}
-The paper by Valadarsky et al. looked into learning regularity but only when using a fixed cycle length. We sought to examine whether the policies can in fact learn to generalise to different cycle lengths or not. To perform this we trained on cyclical bimodal sequences with different cycle lengths (2, 3, 4 and 5) and then tested on different sequences generated in the same way.
+The paper by Valadarsky et al. looked into learning regularity but only when using a fixed cycle length. We sought to examine whether the policies can in fact learn to generalise to different cycle lengths or not. To perform this we trained on 100 cyclical bimodal sequences with different cycle lengths (2, 3, 4 and 5) and then tested on a different 100 sequences generated in the same way. For each experiment the tests were run 10 times.
 
 \begin{figure}
     \centering
@@ -79,7 +90,7 @@ The results of this experiment can be seen in figure \ref{fig:exp_vary}. The fir
 \subsection{Generalising to unseen graphs}
 As the other express aim of this work was to provide a policy that could generalise across different network graphs, it was crucial to test is this worked successfully. For this experiment we anticipate two different types of graph generalisation. The first is generalising to graphs that are the same but with slight changes, as we would still want the policy to work on a network where for example an outage has caused a link or node to temporarily drop. Furthermore, adding a new node or link should similarly not cause the policy to misbehave. The second type of generalisation is to graphs that are unrelated to the original graph, for example all drawn from different generating sets.
 
-For this experiment we test both types of generalisation. For the first we train on the Abilene graph with a subset of vertices and edges randomly dropped and added and testing is performed using the same graph but a different set of small modifications. For the second type of generalisation we train on a set of graphs from the Topology Zoo dataset and test on a different set of graphs from the same dataset.
+For this experiment we test both types of generalisation. For the first we train on the Abilene graph with a subset of vertices and edges randomly dropped and added (5 different modifications) and testing is performed using the same graph but a different set of small modifications (5 different modifications again). For the second type of generalisation we train on a set of 5 graphs from the Topology Zoo dataset and test on a different set of 5 graphs from the same dataset. The tests were each run 10 times.
 
 \begin{figure}
     \centering
@@ -93,7 +104,7 @@ The results of this experiment can be seen in figure \ref{fig:exp_graphs}. We ca
 \subsection{Real world}
 Finally, as the problem we are proposing a solution to is a real-world problem, it is important to see if we get any meaningful performance on a real-world dataset. Fortunately there is a large dataset of real traffic matrices available from the Totem\cite{uhlig2006providing} project. Unfortunately the graph is much larger than in previous experiments and the time period that each measurement is valid for is fairly short meaning that the memory length for the policies had to be extended. However, we still proceeded with the experiment.
 
-We trained on 5 sequences of length 20 with a memory length of 10 for the policies. Testing was performed in much the same way as for previous experiments, with the test sequences being selected randomly from the dataset but being different sequences to those being used for training.
+We trained on 5 sequences of length 20 with a memory length of 10 for the policies. Testing was performed in much the same way as for previous experiments, with the test sequences being selected randomly from the dataset but being different sequences to those being used for training. The tests were each run 10 times.
 
 \begin{figure}
     \centering
@@ -107,7 +118,7 @@ The results of this experiment can be seen in figure \ref{fig:exp_real}. As with
 
 \section{Learning issues}
 \label{section:overfit}
-From the results we have seen that, most of the time, the \ac{rl} policies do seem to outperform the baseline. However, it should be noted that as the baseline is shortest-path routing, this shows that the policies are learning to reduce max-link-utilisation but not how well they are doing this task compared to best-in-class oblivious routing strategies. In fact, upon further investigation, it seems that the main issue is that given a high enough number of different sequences to train on, all the policies learn a fairly good oblivious routing.
+From the results we have seen that, most of the time, the \ac{rl} policies do seem to outperform the baseline. However, it should be noted that as the baseline is shortest-path routing, this shows that the policies are learning to reduce max-link-utilisation but not how well they are doing this task compared to best-in-class oblivious routing strategies. In fact, upon further investigation, it seems that the main issue is that given a high enough number of different sequences to train on, all the policies learn a fairly good oblivious routing rather than reacting to their inputs.
 
 To explore the point where overfitting particular \acp{dm} turns into providing a static oblivious routing scheme we ran a few more experiments. We began by revisiting the experiment discussed in section~\ref{section:exp_static}. We performed this experiment for the \ac{mlp} policy varying the number of \acp{dm} in the training set and testing on those same \acp{dm}.
 
@@ -120,10 +131,13 @@ In figure~\ref{fig:exp_fail} we can see both the overall performance of the trai
     \label{fig:exp_fail}
 \end{figure}
 
+The reason that this occurs is likely due to how the learning is trading off between two extremes. In effect it could either learn to provide an optimal routing for a predicted \ac{dm} or just provide an optimal oblivious routing. Obviously, the optimal routing for the \ac{dm} is preferable, but if it gets the \ac{dm} prediction wrong then the result could be worse for link utilisation than the oblivious scheme which is guaranteed to behave well no matter the actual \ac{dm} in the next timestep. The overfitting we are seeing is probably where the policy cannot find a good middle ground and therefore an oblivious strategy performs better than a bad prediction so that is what the learning converges on.
+
 
 \section{Discussion}
-We have seen various results in this chapter from experiments that sought to assess generalisability of the different policies. Overall, we have learnt that all the policies are able to outperform the baseline. We have also found that the policies struggle to fit the data well, in almost all cases overfitting as the set of demands to route grows in the training set. This is unfortunate as it suggests that these policies are in fact not structured in such a way that allows them to learn this information or that a different technique should be used to aid learning. However, even with this overfitting it does seem to be the case that the graph network-based policies are still able to generalise to other graphs well which is something we sought to show, even if what they are generalising is an oblivious routing as opposed to a strategy informed by demand histories.
+We have seen various results in this chapter from experiments that sought to assess generalisability of the different policies. Overall, we have learnt that all the policies are able to outperform the baseline. We have also found that the policies struggle to fit the data well, in almost all cases overfitting as the size of the set of demands to route grows in the training set. This is unfortunate as it suggests that these policies are in fact not structured in such a way that allows them to learn this information or that a different technique should be used to aid learning. However, even with this overfitting it does seem to be the case that the graph network-based policies are still able to generalise to other graphs well which is something we sought to show, even if what they are generalising is an oblivious routing as opposed to a strategy informed by demand histories.
 
 In examining where overfitting occurs, it seems to be the case that either none of the policies are able to represent the relations required, or that the \ac{rl} algorithm used in tandem with the construction of training sets was not able to explore the trajectories available to a wide enough degree to find the best parameters for the models. When designing these experiments and the policies themselves we did try many variations in the policy network architectures for all policy types and, as mentioned previously, we performed hyperparameter tuning with the aim of improving results. However, even with these measures we were unfortunately unable to improve results further.
 
-However, we have seen that the policies are able to fit small numbers of demand matrices and that graph neural networks are able to successfully generalise to different input graphs. This suggests that it is still a viable area for further research, especially in using \acp{gnn}, but that different techniques should be explored in relation to the learning.
+Overall, we have seen that the policies are able to fit small numbers of demand matrices and that graph neural networks are able to successfully generalise to different input graphs. This suggests that it is a viable area for further research, especially in using \acp{gnn}, but that different techniques should be explored in relation to the learning.
+

@@ -7,7 +7,7 @@ In this chapter we describe the formal specification of the problem to be solved
 \section{Work from ``Learning to route with Deep RL''}
 In chapter~\ref{chapter:background} we introduced the work of Valadarsky et al.\cite{valadarsky2017learning} and that it was the basis for the work performed here. Specifically, that paper introduced a formal structure within which to define an \ac{rl} routing policy, a specification for the generation of \acp{dm} to be trained over, a translation from edge weights to routing strategies, and formulation of a reward function.
 
-The policy that they introduced was an \ac{mlp}-based policy. The issue with this is that its input and output sizes are fixed meaning that it will only be usable for a single graph. This means that it must be trained separately for each network, cannot be used when there is a fault and is unusable for dynamic networks. It was also only evaluated on one type of sequence at a time meaning that we cannot know if a model trained on one type of sequence generalises to others at all.
+The policy that they introduced was an \ac{mlp}-based policy. The issue with this is that its input and output sizes are fixed meaning that it will only be usable for a single graph. This means that it must be trained separately for each different network and cannot be used when there is a temporary fault such as a dropped link of node. It was also only evaluated on one type of sequence at a time meaning that we cannot know if a model trained on one type of sequence generalises to others at all.
 
 
 \section{Routing formal specification}

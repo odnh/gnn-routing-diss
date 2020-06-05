@@ -35,7 +35,6 @@ This can be defined to be minimising $U_{max}$ in equation~\ref{equation:utility
 
 
 \section{The environment}
-\todo{GIVE A DIAGRAM OF HOW THIS ALL WORKS HERE}
 So that it would be possible to both train and evaluate approaches to the defined problem, it was necessary first to construct an environment to simulate the desired responses that a \ac{rl} agent could interact with. For easy interoperability with existing libraries, it was decided that this environment should have an OpenAI Gym\cite{brockman2016openai} \acs{api}. Alongside the internal operations of the environment being correct, its interface to the \ac{rl} agent is important as it has a large impact on how well the agent can learn. A diagram of the overall structure is given in figure~\ref{fig:environment}. We will now proceed to discuss how the environment calculates rewards, the format of observations it gives to the agent and the format of actions it receives form the agent.
 
 \begin{figure}

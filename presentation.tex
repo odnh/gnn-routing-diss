@@ -35,114 +35,90 @@
 
 \maketitle
 
-\begin{frame}{Background}
+\begin{frame}{Context}
+  \begin{itemize}
+    \item Recent paper: ``Learning To Route with Deep RL''\cite{valadarsky2017learning}
+    \item Intradomain routing
+    \item Minimising link congestion
+    \item Optimal routing
+    \item Oblivious routing\cite{racke2002minimizing}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Issues}
 \begin{columns}
   \begin{column}{0.5\textwidth}
-    \begin{itemize}
-      \item Intradomain routing
-      \item Minimising congestion
-      \item Multipath routing
-      \item Multicommodity flow \& load balancing
-      \item Oblivious strategies\cite{racke2002minimizing}
-    \end{itemize}
+  \begin{itemize}
+    \item Policy is multilayer perceptron (MLP)
+    \item Different sized graphs
+    \item Same graph with modifications
+    \item This project generalises to different graphs
+  \end{itemize}
   \end{column}
   \begin{column}{0.5\textwidth}
-    \includegraphics[width=\textwidth]{figures/intradomain.png}
+    \includegraphics[width=\textwidth]{figures/mlp.pdf}
   \end{column}
 \end{columns}
 \end{frame}
 
-\begin{frame}{Learning to Route}
+\begin{frame}{Reinforcement Learning}
   \begin{itemize}
-    \item Recent paper: ``Learning To Route with Deep RL''\cite{valadarsky2017learning}
-    \item Sought to perform data-driven routing better than optimal oblivious scheme
-    \item Under assumption of some regularity in traffic
-    \item RL takes advantage by the input (observation) being historic traffic statistics
+    \item State: List of previous demands
+    \item Action: Routing strategy (well, edge weights which can be converted to one)
+    \item Reward: Ratio between link utilisation under the strategy and optimal achievable
   \end{itemize}
+  \includegraphics[width=\textwidth]{figures/environment.pdf}
 \end{frame}
 
-
-\begin{frame}{Aims}
-  \begin{itemize}
-    \item Design new policies that can generalise to different graphs
-      \begin{itemize}
-        \item Policy design
-        \item Mapping to routing
-        \item Application of learning algrotihms
-      \end{itemize}
-    \item Provide a comprehensive assessment of generalisability
-      \begin{itemize}
-        \item Different sequnece types
-        \item Different toopologies
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{GNN Policy}
+\begin{frame}{Policy}
   \begin{itemize}
     \item An ``Encode-process-decode''\cite{battaglia2018relational} policy
-    \item Input and output transformations
-    \item Iterative and non-iterative versions
+    \item Input is demand history on nodes
+    \item Outputs are edge weights on edges
+    \item Routing is derived from these edge weights
   \end{itemize}
   \vspace{2em}
   \includegraphics[width=\textwidth]{figures/encode_process_decode.pdf}
 \end{frame}
 
-\begin{frame}{Action translation}
-  Output is a weight per edge, we transform to a routing by:
-  \begin{enumerate}
-    \item Convert graph to a DAG for each source-sink pair
-    \item Finding distance to sink for each vertex
-    \item Use distances as splitting ratios, scaled using softmin function
-  \end{enumerate}
-  
-  $$\operatorname{softmin}(\mathbf{x}) = \left( \frac{e^{- \gamma x_i}}{\sum_j{e^{- \gamma x_j}}} \right)_i$$
+\begin{frame}{Evaluation - comparison}
+  \begin{itemize}
+    \item Compare to previous policy
+    \item Lower is better
+    \item Colour indicates different experiment
+    \item Overfitting issues
+  \end{itemize}
+  \centering
+  \resizebox{0.7\textwidth}{!}{\input{figures/exp2.pgf}}
 \end{frame}
 
-\begin{frame}{Evaluation}
-\begin{columns}
-  \begin{column}{0.5\textwidth}
-    Generalising over sequences
-    \begin{itemize}
-      \item Different types of generated demand matrix
-      \item Different types of generated sequence
-    \end{itemize}
-    \resizebox{\textwidth}{!}{\input{figures/exp2.pgf}}
-  \end{column}
-  \begin{column}{0.5\textwidth}
-    Generalising over graphs
-    \begin{itemize}
-      \item Graphs with small changes
-      \item Entirely different graphs
-    \end{itemize}
-    \vspace{\baselineskip}
-    \vspace{\baselineskip}
-    \resizebox{\textwidth}{!}{\input{figures/exp4.pgf}}
-  \end{column}
-\end{columns}
+\begin{frame}{Evaluation - generalisation}
+  \begin{itemize}
+    \item Test for generalising to different graphs
+    \item Graphs same as before (lower is better)
+    \item Generalisation had some level of success
+  \end{itemize}
+  \centering
+  \resizebox{0.7\textwidth}{!}{\input{figures/exp4.pgf}}
 \end{frame}
 
-\begin{frame}{Contributions \& Future work}
+\begin{frame}{Summary}
 \begin{columns}
   \begin{column}{0.5\textwidth}
     Contributions:
     \begin{itemize}
       \item Shown graph generalisation works and a policy that can do it.
-      \item Assessed the generalisation ability and learnability of policies to the problem
-      \item Devised an improved mapping from edge weights to splitting ratios for RL
-      \item Provided an environment that can be used for experimentation
+      \item Assessed the generalisation ability and learnability of policies to this problem
+      \item Provided an environment that can be used for further experimentation
     \end{itemize}
   \end{column}
   \begin{column}{0.5\textwidth}
     Future work:
     \begin{itemize}
-      \item LSTM method gave surprising results so could be looked into further
-      \item Devising new mappings to routings would be advisable
-      \item Hierarchical techniques could aid learning
+      \item Devising new mapping from edge weights to a routing strategy would be advisable
       \item Translating onto real SDN systems for real experimentation
     \end{itemize}
-    \vspace{\baselineskip}
-    \vspace{0.9\baselineskip}
+    \vspace{3\baselineskip}
   \end{column}
 \end{columns}
 \end{frame}

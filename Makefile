@@ -1,16 +1,14 @@
-all:
-	lualatex --shell-escape main
-	biber main
-	lualatex --shell-escape main
-	lualatex --shell-escape main
+objects = main presentation
 
-presentation:
-	lualatex --shell-escape presentation
-	biber presentation
-	lualatex --shell-escape presentation
-	lualatex --shell-escape presentation
+all: $(objects)
+
+$(objects):
+	lualatex --shell-escape $@
+	biber $@
+	lualatex --shell-escape $@
+	lualatex --shell-escape $@
 
 clean:
 	$(RM) -f main.pdf presentation.pdf
-	$(RM) -f *.log *.aux *.toc *.bbl *.lot *.lof *.blg *.bcf *.xml *.wcdetail *.wc *.acr *.nav *.snm *.out
+	$(RM) -f *.log *.aux *.toc *.bbl *.lot *.lof *.blg *.bcf *.xml *.wc *.acr *.nav *.snm *.out
 

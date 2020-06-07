@@ -9,6 +9,7 @@
 
 
 \usepackage{epsfig,graphicx,verbatim,parskip,tabularx,setspace,xspace}
+\usepackage[twoside,a4paper,lmargin=4cm,rmargin=3cm,tmargin=3cm,bmargin=3cm]{geometry}
 \usepackage[UKenglish]{babel}  % correct hyphenation and dates
 \usepackage[backend=biber]{biblatex}
 \usepackage{csquotes}
@@ -19,14 +20,18 @@
 \setmonofont{inconsolata}
 \setsansfont{Linux Biolinum O}
 \setmathfont{Garamond-Math}
+\usepackage{fancyhdr}
 \usepackage[md]{titlesec}  % section/chapter headings aren't bold
 \usepackage[titles]{tocloft}  % for modifying toc, titles makes titlesec happy
 \usepackage{bm}  % bold maths stuff
 \usepackage{algorithm}
 \usepackage{algcompatible}
 \usepackage{algpseudocode}
+\usepackage{longtable}  % for acro alignment
 \usepackage{acro}  % for acronyms
 \usepackage[hidelinks=true]{hyperref}
+\usepackage{changepage}
+\setlength{\headheight}{15.5pt}
 
 % remove this when done
 \usepackage{todonotes}
@@ -74,9 +79,19 @@
 \titlespacing*{\chapter}
   {0pt}{40pt}{40pt}
 
+% fancy headers
+\fancyhead{} % clear all header fields
+\fancyhead[RO]{\scshape\nouppercase\rightmark}
+\fancyhead[LE]{\scshape\nouppercase\leftmark}
+\fancyfoot{} % clear all footer fields
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.0pt}
+\renewcommand{\footrulewidth}{0.0pt}
+
 % add bibliography
 \addbibresource{refs.bib}
 % add acronyms
+\acsetup{list/template=longtable,case-sensitive=false}  % so acronym table is aligned
 \input{sections/acronyms}
 
 %% START OF DOCUMENT
@@ -93,7 +108,7 @@
 
 \pagenumbering{roman}
 \setcounter{page}{0}
-\pagestyle{plain}
+\pagestyle{fancy}
 \tableofcontents
 \listoffigures
 
@@ -117,6 +132,7 @@
 
 \cleardoublepage
 \phantomsection
+\markboth{List of Abbreivations}{}
 \addcontentsline{toc}{chapter}{List of Abbreviations}  % put acronyms page in toc
 \printacronyms[name=List of Abbreviations]
 

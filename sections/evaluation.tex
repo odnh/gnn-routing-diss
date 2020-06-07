@@ -53,7 +53,7 @@ We chose to use the Abilene graph from the Topology Zoo dataset for these experi
 
 \begin{figure}
     \centering
-    \input{figures/exp1.pgf}
+    \resizebox{\textwidth}{!}{\input{figures/exp1.pgf}}
     \caption{Learning to route given a \ac{dm}. Bar heights are the mean ratio between achieved max-link-utilisation and the optimal for the given DM. Dotted lines across the graph are the ratios achieved by the oblivious routing scheme.}
     \label{fig:exp_static}
 \end{figure}
@@ -68,7 +68,7 @@ Again, we used the Abilene graph for these experiments. The sequences used to tr
 
 \begin{figure}
     \centering
-    \input{figures/exp2.pgf}
+    \resizebox{\textwidth}{!}{\input{figures/exp2.pgf}}
     \caption{Learning to route temporal regularities. Bar heights are the mean ratio between achieved max-link-utilisation and the optimal for the given \ac{dm}. Dotted lines across the graph are the ratios achieved by the oblivious routing scheme. The blue dotted line is hard to see: underneath and mostly obscured by the orange dotted line.}
     \label{fig:exp_cyclic}
 \end{figure}
@@ -80,7 +80,7 @@ The paper by Valadarsky et al.\ looked into learning regularity but only when us
 
 \begin{figure}
     \centering
-    \input{figures/exp3.pgf}
+    \resizebox{\textwidth}{!}{\input{figures/exp3.pgf}}
     \caption{Generalising to different cycle lengths. Bar heights are the mean ratio between achieved max-link-utilisation and the optimal for the given \ac{dm}. Dotted lines across the graph are the ratios achieved by the oblivious routing scheme.}
     \label{fig:exp_vary}
 \end{figure}
@@ -94,7 +94,7 @@ For this experiment, we test both types of generalisation. For the first, we tra
 
 \begin{figure}
     \centering
-    \input{figures/exp4.pgf}
+    \resizebox{\textwidth}{!}{\input{figures/exp4.pgf}}
     \caption{Generalising to unseen graphs. Bar heights are the mean ratio between achieved max-link-utilisation and the optimal for the given \ac{dm}. Dotted lines across the graph are the ratios achieved by the oblivious routing scheme.}
     \label{fig:exp_graphs}
 \end{figure}
@@ -108,7 +108,7 @@ We trained on 5 sequences of length 20 with a memory length of 10 for the polici
 
 \begin{figure}
     \centering
-    \input{figures/exp5.pgf}
+    \resizebox{\textwidth}{!}{\input{figures/exp5.pgf}}
     \caption{Learning to route from TOTEM dataset. Bar heights are the mean ratio between achieved max-link-utilisation and the optimal for the given \ac{dm}. Dotted line across the graph is the ratio achieved by the oblivious routing scheme.}
     \label{fig:exp_real}
 \end{figure}
@@ -126,7 +126,7 @@ In figure~\ref{fig:exp_fail}, we can see both the overall performance of the tra
 
 \begin{figure}
     \centering
-    \input{figures/overfit.pgf}
+    \resizebox{\textwidth}{!}{\input{figures/overfit.pgf}}
     \caption{Exploring when learning collapses to a single value. Right-hand axis corresponds to the green points, and left-hand axis corresponds to the others. Blue plot is the result of testing models on \acp{dm} from the training set, whereas the orange line is from \acp{dm} outside of the training set. Error area is the standard deviation.}
     \label{fig:exp_fail}
 \end{figure}

@@ -9,21 +9,23 @@
 
 
 \usepackage{epsfig,graphicx,verbatim,parskip,tabularx,setspace,xspace}
+\usepackage[UKenglish]{babel}  % correct hyphenation and dates
 \usepackage[backend=biber]{biblatex}
+\usepackage{csquotes}
 \usepackage{amsmath}
-\usepackage{unicode-math}  % loads fontspec
+\usepackage{unicode-math}  % loads fontspec too
 \defaultfontfeatures{Ligatures=TeX}
-\usepackage{ebgaramond}
 \setmainfont[Numbers={Lining,Proportional},RawFeature={+ss06}]{EB Garamond}
 \setmonofont{inconsolata}
 \setsansfont{Linux Biolinum O}
 \setmathfont{Garamond-Math}
-\usepackage[md]{titlesec}
-\usepackage{bm}
+\usepackage[md]{titlesec}  % section/chapter headings aren't bold
+\usepackage[titles]{tocloft}  % for modifying toc, titles makes titlesec happy
+\usepackage{bm}  % bold maths stuff
 \usepackage{algorithm}
 \usepackage{algcompatible}
 \usepackage{algpseudocode}
-\usepackage{acro}
+\usepackage{acro}  % for acronyms
 \usepackage[hidelinks=true]{hyperref}
 
 % remove this when done
@@ -32,12 +34,45 @@
 % fix comment alignment in algorithm blocks
 \renewcommand{\Comment}[2][.525\linewidth]{%
   \leavevmode\hfill\makebox[#1][l]{$\triangleright$~#2}}
-  
+
+% word count for declaration page
 \usepackage{shellesc}
-\newcommand{\texcount}[1]{%
-  \ShellEscape{texcount -merge -sum -q -brief -total -0 #1.tex > #1.wc }%
-  \input{#1.wc}%
+\newcommand{\texcount}[1]{
+  \ShellEscape{texcount -merge -sum -q -brief -total -0 #1.tex > #1.wc }
+  \input{#1.wc}
 }
+
+% remove bolding and add small caps to chapters in toc
+\renewcommand\cftchapfont{\mdseries\scshape}
+\renewcommand\cftchappagefont{\mdseries\scshape}
+
+% fancy chapter styling https://tex.stackexchange.com/a/177236/36845
+\newcommand*\HUGE{\Huge}
+\newcommand*\chapnamefont{\normalfont\LARGE\MakeUppercase}
+\newcommand*\chapnumfont{\normalfont\HUGE}
+\newcommand*\chaptitlefont{\normalfont\HUGE}
+
+\newlength\beforechapskip
+\newlength\midchapskip
+\setlength\midchapskip{\paperwidth}
+\addtolength\midchapskip{-\textwidth}
+\addtolength\midchapskip{-\oddsidemargin}
+\addtolength\midchapskip{-1in}
+\setlength\beforechapskip{18mm}
+
+\titleformat{\chapter}[display]
+  {\normalfont\filleft}
+  {{\chapnamefont\chaptertitlename}%
+    \makebox[0pt][l]{\hspace{.8em}%
+      \resizebox{!}{\beforechapskip}{\chapnumfont\thechapter}%
+      \hspace{.8em}%
+      \rule{\midchapskip}{\beforechapskip}%
+    }%
+  }%
+  {25pt}
+  {\chaptitlefont}
+\titlespacing*{\chapter}
+  {0pt}{40pt}{40pt}
 
 % add bibliography
 \addbibresource{refs.bib}
@@ -47,7 +82,7 @@
 %% START OF DOCUMENT
 \begin{document}
 
-%% FRONTMATTER (TITLE PAGE, DECLARATION, ABSTRACT, ETC) 
+%% FRONTMATTER (TITLE PAGE, DECLARATION, ABSTRACT, ETC)
 \pagestyle{empty}
 \singlespacing
 \input{sections/titlepage}
@@ -61,11 +96,10 @@
 \pagestyle{plain}
 \tableofcontents
 \listoffigures
-%\listoftables
 
 \onehalfspacing
 
-%% START OF MAIN TEXT 
+%% START OF MAIN TEXT
 \input{sections/introduction}
 
 \input{sections/background}
@@ -83,12 +117,12 @@
 
 \cleardoublepage
 \phantomsection
-\addcontentsline{toc}{chapter}{List of Abbreviations}
+\addcontentsline{toc}{chapter}{List of Abbreviations}  % put acronyms page in toc
 \printacronyms[name=List of Abbreviations]
 
 \cleardoublepage
 \phantomsection
-\addcontentsline{toc}{chapter}{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}  % put bibliography in toc
 \printbibliography
 
 \end{document}
